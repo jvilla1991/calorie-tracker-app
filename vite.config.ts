@@ -12,10 +12,11 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Calorie Tracker',
-        short_name: 'Cal Track',
+        short_name: 'Calories',
         description: 'Personal calorie and macro tracking app',
-        theme_color: '#16a34a',
-        background_color: '#ffffff',
+        // Match the dark instrument-cluster theme (default)
+        theme_color: '#0D0E11',
+        background_color: '#0D0E11',
         display: 'standalone',
         start_url: '/',
         icons: [
