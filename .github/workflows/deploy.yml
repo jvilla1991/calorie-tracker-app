@@ -1,0 +1,69 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: "20"
+
+jobs:
+  build-and-deploy:
+    name: Build, upload & invalidate
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Build ────────────────────────────────────────────────────────────────
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # VITE_API_BASE_URL is baked into the JS bundle at build time.
+          # Set APPRUNNER_SERVICE_URL in the repo secrets to the App Runner
+          # service URL (without https://) from the calorie-tracker-api outputs.
+          VITE_API_BASE_URL: https://${{ secrets.APPRUNNER_SERVICE_URL }}
+        run: npm run build
+
+      # ── AWS credentials via OIDC ─────────────────────────────────────────────
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ── Deploy to S3 ─────────────────────────────────────────────────────────
+      # --delete removes stale files from previous builds.
+      # Hashed asset files (JS/CSS) get a long cache TTL at the CloudFront layer;
+      # index.html is short-lived so new deploys are picked up quickly.
+
+      - name: Sync dist/ to S3
+        run: |
+          aws s3 sync dist/ "s3://${{ secrets.S3_BUCKET_NAME }}/" \
+            --delete \
+            --region "$AWS_REGION"
+
+      # ── CloudFront invalidation ───────────────────────────────────────────────
+      # Bust the index.html + service worker so users get the new version.
+      # Hashed assets don't need invalidation — new filenames are embedded in index.html.
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/index.html" "/sw.js" "/manifest.webmanifest" "/registerSW.js"
