@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSavedMeals, createSavedMeal, addSavedMealToDiary, deleteSavedMeal } from '../api/savedMeals'
@@ -25,7 +25,7 @@ interface QuickAddState {
 }
 
 // Animated bottom sheet hook
-function useSheet(initialOpen = false) {
+function useSheet() {
   const [visible, setVisible] = useState(false)
   const [open, setOpen] = useState(false)
 
