@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { login } from '../api/auth'
+import { register } from '../api/auth'
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -14,11 +14,15 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      const token = await login(username, password)
+      const token = await register(username, password)
       localStorage.setItem('ct_token', token)
       navigate('/', { replace: true })
-    } catch {
-      setError('Invalid username or password')
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        setError('Username is already taken')
+      } else {
+        setError('Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -28,7 +32,7 @@ export default function LoginPage() {
     <div className="ct-login">
       <div className="ct-login-inner">
         <div className="ct-login-title">Calorie Tracker</div>
-        <div className="ct-login-sub">Track your daily nutrition</div>
+        <div className="ct-login-sub">Create your account</div>
 
         <form onSubmit={handleSubmit}>
           <div className="ct-card ct-login-card">
@@ -53,7 +57,7 @@ export default function LoginPage() {
                 className="ct-in"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -64,13 +68,13 @@ export default function LoginPage() {
               disabled={loading}
               style={{ marginTop: 4 }}
             >
-              {loading ? 'Logging in…' : 'Log In'}
+              {loading ? 'Creating account…' : 'Create Account'}
             </button>
 
             <div style={{ textAlign: 'center', marginTop: 8, fontSize: '0.875rem' }}>
-              Don't have an account?{' '}
-              <Link to="/register" style={{ color: 'inherit', textDecoration: 'underline' }}>
-                Create one
+              Already have an account?{' '}
+              <Link to="/login" style={{ color: 'inherit', textDecoration: 'underline' }}>
+                Log in
               </Link>
             </div>
           </div>
