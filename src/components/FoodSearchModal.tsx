@@ -209,7 +209,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               </svg>
               <input
                 className="ct-search-in" placeholder="Search your foods"
-                value={q} autoFocus onChange={(e) => setQ(e.target.value)}
+                value={q} onChange={(e) => setQ(e.target.value)}
               />
               <button className="ct-scan-btn" title="Scan barcode" onClick={() => setMode('scan')}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
