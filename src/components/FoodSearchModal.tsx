@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { searchFoods, lookupBarcode, createFood, getRecentFoods } from '../api/foods'
-import type { Food, RecentFood } from '../types'
+import type { Food, FoodSearchResult, RecentFood } from '../types'
 import BarcodeScannerView from './BarcodeScannerView'
 
 const identOf = (name: string) =>
@@ -49,18 +49,20 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
   // ── Pick / search ─────────────────────────────────────────────────────────
   const [q, setQ] = useState('')
-  const [results, setResults] = useState<Food[]>([])
+  const [results, setResults] = useState<FoodSearchResult>({ mine: [], external: [] })
   const [loading, setLoading] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
 
+  const emptyResults: FoodSearchResult = { mine: [], external: [] }
+
   useEffect(() => {
-    if (!q.trim()) { setResults([]); return }
+    if (!q.trim()) { setResults(emptyResults); return }
     if (mode !== 'pick') return
     const t = setTimeout(() => {
       setLoading(true)
       searchFoods(q)
         .then(setResults)
-        .catch(() => setResults([]))
+        .catch(() => setResults(emptyResults))
         .finally(() => setLoading(false))
     }, 400)
     return () => clearTimeout(t)
@@ -98,6 +100,23 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
     else { setUnit('g'); setQuantity('100') }
     setMode('portion')
   }
+
+  // One tappable row in the search results — shared by both categories.
+  const renderFoodRow = (f: Food) => (
+    <button className="ct-food" key={f.id} onClick={() => selectFood(f)}>
+      <span className="ct-food-ident">{identOf(f.name)}</span>
+      <span className="ct-food-main">
+        <span className="ct-food-name">{f.name}</span>
+        {f.brand && <span className="ct-food-macros">{f.brand}</span>}
+        <span className="ct-food-macros">
+          P{f.proteinPer100g ?? '?'} · C{f.carbsPer100g ?? '?'} · F{f.fatPer100g ?? '?'}
+        </span>
+      </span>
+      <span className="ct-food-kcal">
+        {f.caloriesPer100g}<span className="ct-food-k">kcal</span>
+      </span>
+    </button>
+  )
 
   const computeGrams = (): number | null => {
     const n = parseFloat(quantity)
@@ -253,26 +272,26 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 </>
               )}
 
-              {/* Search results */}
+              {/* Search results — split into the user's own foods and external matches */}
               {q.trim() && (
                 <>
                   {loading && <div className="ct-empty">Searching…</div>}
-                  {results.map((f) => (
-                    <button className="ct-food" key={f.id} onClick={() => selectFood(f)}>
-                      <span className="ct-food-ident">{identOf(f.name)}</span>
-                      <span className="ct-food-main">
-                        <span className="ct-food-name">{f.name}</span>
-                        {f.brand && <span className="ct-food-macros">{f.brand}</span>}
-                        <span className="ct-food-macros">
-                          P{f.proteinPer100g ?? '?'} · C{f.carbsPer100g ?? '?'} · F{f.fatPer100g ?? '?'}
-                        </span>
-                      </span>
-                      <span className="ct-food-kcal">
-                        {f.caloriesPer100g}<span className="ct-food-k">kcal</span>
-                      </span>
-                    </button>
-                  ))}
-                  {!loading && results.length === 0 && (
+
+                  {results.mine.length > 0 && (
+                    <>
+                      <div className="ct-pick-label">My foods</div>
+                      {results.mine.map(renderFoodRow)}
+                    </>
+                  )}
+
+                  {results.external.length > 0 && (
+                    <>
+                      <div className="ct-pick-label">Open Food Facts</div>
+                      {results.external.map(renderFoodRow)}
+                    </>
+                  )}
+
+                  {!loading && results.mine.length === 0 && results.external.length === 0 && (
                     <div className="ct-empty">No matches — create it above.</div>
                   )}
                 </>
