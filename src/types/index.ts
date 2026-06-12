@@ -13,6 +13,14 @@ export interface Food {
   source: string
 }
 
+/** Grouped food-search result: the user's own foods and external Open Food Facts matches. */
+export interface FoodSearchResult {
+  /** Foods the user created (source = "custom"). */
+  mine: Food[]
+  /** Matches from the external Open Food Facts database. */
+  external: Food[]
+}
+
 export interface MacroTotals {
   calories: number
   protein: number

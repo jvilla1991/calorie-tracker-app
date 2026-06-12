@@ -1,8 +1,8 @@
 import api from './axios'
-import type { Food, RecentFood } from '../types'
+import type { Food, FoodSearchResult, RecentFood } from '../types'
 
 export const searchFoods = (q: string) =>
-  api.get<Food[]>('/foods/search', { params: { q } }).then((r) => r.data)
+  api.get<FoodSearchResult>('/foods/search', { params: { q } }).then((r) => r.data)
 
 export const lookupBarcode = (barcode: string) =>
   api.get<Food>(`/foods/barcode/${barcode}`).then((r) => r.data)
