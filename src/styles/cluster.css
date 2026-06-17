@@ -1141,3 +1141,114 @@
   color: var(--muted);
   letter-spacing: 1px;
 }
+
+/* ── Multi-select → create meal ─────────────────────────────────────────────── */
+
+.ct-select-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 22px;
+  margin: 0 4px 11px;
+}
+.ct-select-toggle {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.ct-select-toggle:hover { opacity: 0.8; }
+.ct-select-hint {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.6px;
+}
+.ct-select-count {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* Item row in selection mode */
+.ct-item-selectable {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ct-item-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, border-color .15s;
+}
+.ct-item-selected .ct-item-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ct-item-selected .ct-item-name { color: var(--accent); }
+
+/* Pinned selection action bar */
+.ct-action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  gap: 10px;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: var(--card);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -10px 36px rgba(40, 24, 14, 0.22);
+}
+.ct-action-cancel {
+  flex-shrink: 0;
+  border: 1.5px solid var(--line);
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: .15s;
+}
+.ct-action-cancel:hover { color: var(--ink); border-color: var(--ink); }
+.ct-action-create {
+  flex: 1;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.ct-action-create:disabled { opacity: 0.4; cursor: default; }
