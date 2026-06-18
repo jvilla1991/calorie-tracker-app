@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getDiary, addMeal, addItem, deleteItem } from '../api/diary'
 import { getGoals } from '../api/goals'
+import { createSavedMeal } from '../api/savedMeals'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import FoodSearchModal from '../components/FoodSearchModal'
 import { useTheme } from '../contexts/ThemeContext'
-import type { Food, DailyGoal, MacroTotals } from '../types'
+import type { Food, DailyGoal, MacroTotals, DiaryItem } from '../types'
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Breakfast',
@@ -32,6 +33,20 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
 }
 
+// Animated bottom sheet hook (mirrors SavedMealsPage)
+function useSheet() {
+  const [visible, setVisible] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  const show = () => { setVisible(true); requestAnimationFrame(() => setOpen(true)) }
+  const hide = (onDone?: () => void) => {
+    setOpen(false)
+    setTimeout(() => { setVisible(false); onDone?.() }, 360)
+  }
+
+  return { visible, open, show, hide }
+}
+
 export default function DiaryPage() {
   const { date } = useParams<{ date: string }>()
   const navigate = useNavigate()
@@ -48,6 +63,16 @@ export default function DiaryPage() {
   // { mealId, mealType } while the sheet is open; null = closed
   const [activeSheet, setActiveSheet] = useState<{ mealId: number; mealType: string } | null>(null)
   const [pendingMealType, setPendingMealType] = useState<string | null>(null)
+
+  // ── Multi-select → create meal ──────────────────────────────────────────────
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [newName, setNewName] = useState('')
+  const createSheet = useSheet()
+
+  // Long-press (mobile) bookkeeping
+  const pressTimer = useRef<number>()
+  const justLongPressed = useRef(false)
 
   const { data: diary, isLoading } = useQuery({
     queryKey: ['diary', currentDate],
@@ -80,6 +105,15 @@ export default function DiaryPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['diary', currentDate] }),
   })
 
+  const createMealMut = useMutation({
+    mutationFn: ({ name, items }: { name: string; items: { foodId: number; quantityGrams: number }[] }) =>
+      createSavedMeal(name, items),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['saved-meals'] })
+      createSheet.hide(() => exitSelect())
+    },
+  })
+
   const handleOpenAddFood = (mealType: string) => {
     const existing = diary?.meals.find((m) => m.mealType === mealType)
     if (existing) {
@@ -101,6 +135,56 @@ export default function DiaryPage() {
   const sortedMeals = [...(diary?.meals ?? [])].sort(
     (a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)
   )
+
+  // Flat list of every logged item today — the pool we select from.
+  const allItems: DiaryItem[] = sortedMeals.flatMap((m) => m.items)
+  const selectedItems = allItems.filter((i) => selectedIds.has(i.id))
+
+  // ── Selection handlers ──────────────────────────────────────────────────────
+  const toggleSelect = (id: number) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+
+  const exitSelect = () => {
+    setSelectMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const handleRowClick = (id: number) => {
+    // Swallow the click the browser fires right after a long-press triggered selection.
+    if (justLongPressed.current) { justLongPressed.current = false; return }
+    if (selectMode) toggleSelect(id)
+  }
+
+  // Long-press only matters as an entry point; once in select mode, taps toggle.
+  const startPress = (id: number) => {
+    if (selectMode) return
+    pressTimer.current = window.setTimeout(() => {
+      justLongPressed.current = true
+      setSelectMode(true)
+      setSelectedIds(new Set([id]))
+    }, 450)
+  }
+  const cancelPress = () => {
+    if (pressTimer.current) window.clearTimeout(pressTimer.current)
+  }
+
+  const openCreate = () => {
+    setNewName('')
+    createSheet.show()
+  }
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newName.trim() || selectedItems.length === 0) return
+    createMealMut.mutate({
+      name: newName.trim(),
+      items: selectedItems.map((i) => ({ foodId: i.food.id, quantityGrams: i.quantityGrams })),
+    })
+  }
 
   return (
     <>
@@ -144,6 +228,22 @@ export default function DiaryPage() {
         {/* Macro dials */}
         <MacroDials totals={totals} goal={effectiveGoals} />
 
+        {/* Selection toolbar — entry point for building a meal from logged foods */}
+        {allItems.length > 0 && (
+          <div className="ct-select-bar">
+            {selectMode ? (
+              <>
+                <span className="ct-select-hint">Tap foods to add to your meal</span>
+                <span className="ct-select-count">{selectedIds.size} selected</span>
+              </>
+            ) : (
+              <button className="ct-select-toggle" onClick={() => setSelectMode(true)}>
+                ⊕ Select foods
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Meal cards */}
         <div className="ct-meals">
           {MEAL_ORDER.map((mealType) => {
@@ -161,29 +261,54 @@ export default function DiaryPage() {
 
                 {meal && meal.items.length > 0 && (
                   <div className="ct-meal-list">
-                    {meal.items.map((item) => (
-                      <div className="ct-item ct-item-mono" key={item.id}>
-                        <span className="ct-item-ident">{identOf(item.food.name)}</span>
-                        <span className="ct-item-name">{item.food.name}</span>
-                        <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
-                        <button
-                          className="ct-item-x"
-                          onClick={() => deleteItemMut.mutate(item.id)}
-                          aria-label="Remove"
+                    {meal.items.map((item) => {
+                      const selected = selectedIds.has(item.id)
+                      return (
+                        <div
+                          className={
+                            'ct-item ct-item-mono' +
+                            (selectMode ? ' ct-item-selectable' : '') +
+                            (selected ? ' ct-item-selected' : '')
+                          }
+                          key={item.id}
+                          onClick={() => handleRowClick(item.id)}
+                          onTouchStart={() => startPress(item.id)}
+                          onTouchEnd={cancelPress}
+                          onTouchMove={cancelPress}
                         >
-                          <svg width="13" height="13" viewBox="0 0 13 13">
-                            <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
+                          {selectMode && (
+                            <span className="ct-item-check" aria-hidden>
+                              {selected && (
+                                <svg width="12" height="12" viewBox="0 0 12 12">
+                                  <path d="M2 6.5l2.8 2.8L10 3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </span>
+                          )}
+                          <span className="ct-item-ident">{identOf(item.food.name)}</span>
+                          <span className="ct-item-name">{item.food.name}</span>
+                          <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
+                          {!selectMode && (
+                            <button
+                              className="ct-item-x"
+                              onClick={(e) => { e.stopPropagation(); deleteItemMut.mutate(item.id) }}
+                              aria-label="Remove"
+                            >
+                              <svg width="13" height="13" viewBox="0 0 13 13">
+                                <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
                 <button
                   className="ct-add-btn"
                   onClick={() => handleOpenAddFood(mealType)}
-                  disabled={isCreating}
+                  disabled={isCreating || selectMode}
                 >
                   <span className="ct-add-plus">+</span>
                   {isCreating ? 'Opening…' : 'Log item'}
@@ -199,8 +324,70 @@ export default function DiaryPage() {
           <button className="ct-footer-btn" onClick={() => navigate('/saved-meals')}>Saved Meals</button>
         </div>
 
-        <div className="ct-footspace" />
+        <div className="ct-footspace" style={{ height: selectMode ? 96 : 28 }} />
       </div>
+
+      {/* Selection action bar — pinned while choosing foods to bundle into a meal */}
+      {selectMode && (
+        <div className="ct-action-bar">
+          <button className="ct-action-cancel" onClick={exitSelect}>Cancel</button>
+          <button
+            className="ct-action-create"
+            disabled={selectedIds.size === 0}
+            onClick={openCreate}
+          >
+            Create Meal ({selectedIds.size})
+          </button>
+        </div>
+      )}
+
+      {/* Name-the-meal sheet */}
+      {createSheet.visible && (
+        <div className={'ct-sheet-scrim' + (createSheet.open ? ' open' : '')} onClick={() => createSheet.hide()}>
+          <div className={'ct-sheet' + (createSheet.open ? ' open' : '')} onClick={(e) => e.stopPropagation()}>
+            <div className="ct-sheet-handle" />
+            <div className="ct-sheet-head">
+              <span className="ct-sheet-title">New Meal · {selectedItems.length} food{selectedItems.length !== 1 ? 's' : ''}</span>
+              <button className="ct-sheet-close" onClick={() => createSheet.hide()}>Done</button>
+            </div>
+
+            <form className="ct-form" onSubmit={handleCreate}>
+              <div className="ct-field ct-field-name">
+                <input
+                  className="ct-in"
+                  placeholder="Meal name (e.g. Post-Workout Plate)"
+                  value={newName}
+                  autoFocus
+                  onChange={(e) => setNewName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="ct-meal-list" style={{ background: 'var(--bg2)', borderRadius: 'var(--radius-sm)', padding: '0 10px' }}>
+                {selectedItems.map((item) => (
+                  <div className="ct-item ct-item-mono" key={item.id}>
+                    <span className="ct-item-ident">{identOf(item.food.name)}</span>
+                    <span className="ct-item-name">{item.food.name}</span>
+                    <span className="ct-item-kcal" style={{ fontSize: 12, color: 'var(--muted)' }}>{item.quantityGrams}g</span>
+                  </div>
+                ))}
+              </div>
+
+              {createMealMut.isError && <div className="ct-error-msg">Failed — please try again.</div>}
+
+              <button
+                type="submit"
+                className="ct-save-btn"
+                disabled={createMealMut.isPending || !newName.trim() || selectedItems.length === 0}
+              >
+                {createMealMut.isPending
+                  ? 'Saving…'
+                  : `Save Meal (${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''})`}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Food search sheet — rendered OUTSIDE ct-scroll so position:fixed works
           correctly regardless of the parent's overflow-x:hidden. */}
