@@ -71,7 +71,7 @@ export default function DiaryPage() {
   const createSheet = useSheet()
 
   // Long-press (mobile) bookkeeping
-  const pressTimer = useRef<number>()
+  const pressTimer = useRef<number | undefined>(undefined)
   const justLongPressed = useRef(false)
 
   const { data: diary, isLoading } = useQuery({
