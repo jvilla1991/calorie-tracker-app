@@ -12,6 +12,8 @@ jobs:
   build-and-deploy:
     name: Build, upload & invalidate
     runs-on: ubuntu-latest
+    # The deploy role's OIDC trust is pinned to this GitHub Environment (§B8.2)
+    environment: production
 
     permissions:
       id-token: write   # required for OIDC
