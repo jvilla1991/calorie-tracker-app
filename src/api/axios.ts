@@ -15,12 +15,17 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+/** The login call itself — a 401 there means "wrong password", not "session expired". */
+const isLoginRequest = (url?: string) => !!url && url.split('?')[0].replace(/\/+$/, '').endsWith('/auth/login')
+
+// A 401 anywhere else means the token is missing, expired or revoked: drop it and
+// send the user to sign in again. The full page load also resets all cached data.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !isLoginRequest(err.config?.url)) {
       localStorage.removeItem('ct_token')
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') window.location.href = '/login'
     }
     return Promise.reject(err)
   }
