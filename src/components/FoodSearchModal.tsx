@@ -45,8 +45,8 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   const [mode, setMode] = useState<Mode>('pick')
 
   // ── Recent foods (paginated, infinite scroll) ─────────────────────────────
-  // Key stays ['recent-foods'] so invalidations elsewhere (e.g. after logging an
-  // item) refresh every loaded page.
+  // Key stays ['recent-foods'] so invalidations elsewhere (DiaryPage refreshes it
+  // when this sheet closes after something was logged) refresh every loaded page.
   const {
     data: recentData,
     fetchNextPage,

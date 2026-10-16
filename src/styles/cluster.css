@@ -62,23 +62,42 @@
 .ct-scroll {
   min-height: 100dvh;
   overflow-x: hidden;
-  padding: 2px 16px 0;
+  /* Installed PWA uses viewport-fit=cover: keep the header clear of the notch / status bar */
+  padding: calc(2px + env(safe-area-inset-top)) 16px 0;
   box-sizing: border-box;
   scrollbar-width: none;
   max-width: 430px;
   margin: 0 auto;
 }
 .ct-scroll::-webkit-scrollbar { width: 0; height: 0; }
+/* Diary: horizontal swipes change the day, so leave only vertical panning (and
+   pinch-zoom) to the browser. Scrolling behaves exactly as before. */
+.ct-scroll { touch-action: pan-y pinch-zoom; }
+
+/* Short nudge in the swipe direction after the day changes */
+.ct-swipe-next { animation: ct-swipe-next .18s ease-out; }
+.ct-swipe-prev { animation: ct-swipe-prev .18s ease-out; }
+@keyframes ct-swipe-next { from { transform: translateX(18px); opacity: .55; } to { transform: none; opacity: 1; } }
+@keyframes ct-swipe-prev { from { transform: translateX(-18px); opacity: .55; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ct-swipe-next, .ct-swipe-prev { animation: none; }
+}
 
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 
 .ct-top {
+  padding: 10px 4px 14px;
+}
+.ct-top-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 10px 4px 14px;
+  gap: 8px;
 }
 .ct-greet {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-display);
   font-size: 19px;
   font-weight: 700;
@@ -91,11 +110,16 @@
   color: var(--muted);
   margin-top: 2px;
   font-weight: 600;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ct-top-right {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 .ct-cluster-badge {
   font-family: var(--font-display);
@@ -111,6 +135,21 @@
   transition: opacity .15s;
 }
 .ct-cluster-badge:hover { opacity: 0.8; }
+.ct-cluster-badge { white-space: nowrap; display: inline-block; }
+
+/* Past dates: "TODAY ›" jump-back chip in the badge's spot. The button is a 44px-tall
+   hit area (negative margin keeps the header height unchanged); the badge is the visual. */
+.ct-today-chip {
+  border: none;
+  background: none;
+  padding: 11px 0;
+  margin: -11px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.ct-today-chip:focus-visible { outline: none; }
+.ct-today-chip:focus-visible .ct-cluster-badge { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Date navigation */
 .ct-date-nav {
@@ -118,30 +157,30 @@
   align-items: center;
   gap: 6px;
 }
+/* 44×44 hit area around a compact glyph: the negative margin cancels the extra size
+   so the row looks exactly as before. position:relative keeps the hit area on top
+   of the neighbouring date text. */
 .ct-date-btn {
+  position: relative;
   border: none;
   background: none;
   color: var(--muted);
   font-family: var(--font-display);
   font-size: 16px;
   cursor: pointer;
-  padding: 0 2px;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  margin: -14px -15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   transition: color .15s;
+  flex-shrink: 0;
 }
 .ct-date-btn:hover { color: var(--ink); }
 .ct-date-btn:disabled { opacity: 0.3; cursor: default; }
-.ct-today-link {
-  font-family: var(--font-display);
-  font-size: 10px;
-  color: var(--accent);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-  letter-spacing: 0.3px;
-}
 
 /* ── Cards ──────────────────────────────────────────────────────────────────── */
 
@@ -224,6 +263,32 @@
   letter-spacing: 1.3px;
   color: var(--muted);
   white-space: nowrap;
+}
+/* Tappable goal caption: looks like the caption text, but with a ≥44px-tall hit
+   area (padding cancelled by negative margin so the LCD layout doesn't move). */
+.ct-lcd-goal {
+  display: inline-block;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 16px 8px;
+  margin: -16px -8px;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  text-underline-offset: 3px;
+  transition: color .15s;
+}
+.ct-lcd-goal:hover { color: var(--ink); }
+.ct-lcd-goal:focus-visible { outline: none; color: var(--accent); }
+.ct-lcd-goal-arrow {
+  display: inline-block;
+  margin-left: 3px;
+  color: var(--accent);
+  text-decoration: none;
 }
 .ct-lcd-div {
   width: 1px;
@@ -398,19 +463,101 @@
   letter-spacing: 0.5px;
   flex-shrink: 0;
 }
+/* 44×44 hit area; the negative margin keeps the row's layout as it was (≈21px wide).
+   The round hover chip lives on the inner span. */
 .ct-item-x {
   border: none;
   background: none;
   color: var(--muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  margin: -7px -14px -7px -9px;
   display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.5;
-  border-radius: 50%;
   transition: .15s;
   flex-shrink: 0;
 }
-.ct-item-x:hover { opacity: 1; color: var(--accent); background: var(--accent-soft); }
+.ct-item-x-ic {
+  display: flex;
+  padding: 4px;
+  border-radius: 50%;
+  transition: .15s;
+}
+.ct-item-x:hover { opacity: 1; color: var(--accent); }
+.ct-item-x:hover .ct-item-x-ic { background: var(--accent-soft); }
+.ct-item-x:focus-visible { outline: none; opacity: 1; }
+.ct-item-x:focus-visible .ct-item-x-ic { outline: 2px solid var(--accent); }
+
+/* ── Undo toast ─────────────────────────────────────────────────────────────── */
+
+/* Sits just above the tab bar, inside the 430px column. z-index 45: over the tab bar
+   (40) and readout strip (30), under sheet scrims (50). */
+.ct-toast-region {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* +1px: the tab bar's top border sits on top of its 58px row */
+  bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom) + 12px);
+  z-index: 45;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.ct-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 0 16px;
+  min-height: 48px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--card);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  animation: ct-toast-in .2s ease-out;
+}
+.ct-dark-theme .ct-toast {
+  background: var(--bg2);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px var(--line), 0 8px 24px rgba(0,0,0,0.5);
+}
+.ct-toast-text {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ct-toast-undo {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.ct-toast-undo:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+@keyframes ct-toast-in { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ct-toast { animation: none; }
+}
 .ct-add-btn {
   margin-top: 8px;
   width: 100%;
@@ -437,6 +584,144 @@
 .ct-add-plus { font-size: 16px; line-height: 1; }
 .ct-footspace { height: 28px; }
 
+/* Empty meal: title + "+ LOG" on one compact row. The button is a 44px-tall hit
+   area; the chip inside is the visual. */
+.ct-meal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 9px 4px 15px;
+}
+.ct-log-btn {
+  min-height: 44px;
+  border: none;
+  background: none;
+  padding: 0 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.ct-log-chip {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 6px 11px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.ct-log-btn:hover .ct-log-chip { background: var(--accent); color: var(--accent-ink); }
+.ct-log-btn:disabled { opacity: 0.5; cursor: default; }
+.ct-log-btn:focus-visible { outline: none; }
+.ct-log-btn:focus-visible .ct-log-chip { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Collapsing readout strip ───────────────────────────────────────────────── */
+
+/* z-index 30: above page content and sticky page headers (10), below the tab bar (40,
+   which never overlaps it anyway) and the sheet scrims (50) so an open sheet covers it. */
+.ct-strip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: block;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: calc(8px + env(safe-area-inset-top)) 20px 9px;
+  background: var(--card);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.ct-strip.show {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.ct-strip:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .ct-strip { transform: none; transition: none; }
+}
+.ct-strip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.ct-strip-k {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+}
+.ct-strip-unit {
+  margin-left: 5px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.ct-strip-left {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.ct-strip.over .ct-strip-left { color: var(--redline); }
+.ct-strip-bar {
+  display: block;
+  height: 4px;
+  margin: 8px 0 7px;
+  border-radius: 2px;
+  background: var(--ring-track);
+  overflow: hidden;
+}
+.ct-strip-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width .4s ease;
+}
+.ct-strip.over .ct-strip-fill { background: var(--redline); }
+.ct-strip-macros {
+  display: flex;
+  gap: 16px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.ct-strip-target {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 10px;
+}
+.ct-dark-theme .ct-strip-k { text-shadow: 0 0 14px rgba(255,122,26,0.3); }
+.ct-dark-theme .ct-strip-fill { box-shadow: 0 0 6px rgba(255,122,26,0.5); }
+.ct-dark-theme .ct-strip.over .ct-strip-fill { box-shadow: none; }
+
 /* ── Add sheet ──────────────────────────────────────────────────────────────── */
 
 .ct-sheet-scrim {
@@ -455,13 +740,16 @@
 }
 .ct-sheet {
   width: 100%;
+  /* Match the 430px app column on wide screens; the scrim stays full-width */
+  max-width: 430px;
+  margin: 0 auto;
   background: var(--card);
   border-radius: 30px 30px 0 0;
   transform: translateY(105%);
   transition: transform .36s cubic-bezier(.32,.72,0,1);
-  padding: 9px 16px 14px;
+  padding: 9px 16px calc(14px + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 -12px 44px rgba(40,24,14,0.20);
@@ -896,7 +1184,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 0 16px;
+  padding: calc(14px + env(safe-area-inset-top)) 0 16px;
   position: sticky;
   top: 0;
   background: var(--bg);
@@ -1177,7 +1465,8 @@
 .ct-sections { display: flex; flex-direction: column; gap: 12px; }
 .ct-section {
   padding: 13px 15px 15px;
-  scroll-margin-top: 64px; /* clear the sticky page header on #hash jumps */
+  /* clear the sticky page header (incl. its safe-area padding) on #hash jumps */
+  scroll-margin-top: calc(64px + env(safe-area-inset-top));
 }
 .ct-section .ct-goals-note { padding-top: 8px; }
 .ct-section-btn { width: 100%; margin-top: 10px; min-height: 48px; }
@@ -1229,7 +1518,6 @@
 .ct-sheet-actions {
   display: flex;
   gap: 10px;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 .ct-sheet-cancel,
 .ct-sheet-danger {
