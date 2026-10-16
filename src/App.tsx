@@ -7,7 +7,7 @@ import LoginPage from './pages/LoginPage'
 import DiaryPage from './pages/DiaryPage'
 import MetricsPage from './pages/MetricsPage'
 import ProfilePage from './pages/ProfilePage'
-import { todayStr } from './utils/date'
+import { todayLocal } from './utils/date'
 
 function ThemedShell() {
   const { dark } = useTheme()
@@ -20,7 +20,7 @@ function ThemedShell() {
           path="/"
           element={
             <ProtectedRoute>
-              <Navigate to={`/diary/${todayStr()}`} replace />
+              <Navigate to={`/diary/${todayLocal()}`} replace />
             </ProtectedRoute>
           }
         />
