@@ -111,21 +111,6 @@
   transition: opacity .15s;
 }
 .ct-cluster-badge:hover { opacity: 0.8; }
-.ct-theme-toggle {
-  border: none;
-  background: var(--bg2);
-  color: var(--muted);
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 15px;
-  transition: background .15s;
-}
-.ct-theme-toggle:hover { background: var(--line); }
 
 /* Date navigation */
 .ct-date-nav {
@@ -344,7 +329,8 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
-.ct-meal-head {
+.ct-meal-head,
+.ct-section-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -352,7 +338,8 @@
   padding-bottom: 9px;
   margin-bottom: 4px;
 }
-.ct-meal-title {
+.ct-meal-title,
+.ct-section-title {
   font-family: var(--font-display);
   font-size: 12.5px;
   font-weight: 700;
@@ -449,31 +436,6 @@
 .ct-add-btn:disabled { opacity: 0.5; cursor: default; }
 .ct-add-plus { font-size: 16px; line-height: 1; }
 .ct-footspace { height: 28px; }
-
-/* ── Footer nav (Goals / Saved Meals links) ──────────────────────────────── */
-
-.ct-footer-nav {
-  display: flex;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.ct-footer-btn {
-  flex: 1;
-  border: 1.5px solid var(--line);
-  background: none;
-  color: var(--muted);
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
-  padding: 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: .15s;
-}
-.ct-footer-btn:hover { color: var(--ink); border-color: var(--ink); }
 
 /* ── Add sheet ──────────────────────────────────────────────────────────────── */
 
@@ -808,7 +770,7 @@
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
-  font-size: 15px;
+  font-size: 16px;
   font-family: inherit;
   color: var(--ink);
   background: var(--card);
@@ -876,21 +838,6 @@
   letter-spacing: 1.6px;
   color: var(--ink);
   flex: 1;
-}
-
-.ct-page-action {
-  border: none;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  flex-shrink: 0;
 }
 
 /* ── Login ──────────────────────────────────────────────────────────────────── */
@@ -1007,100 +954,6 @@
 .ct-unit-btn + .ct-unit-btn { border-left: 1px solid var(--line); }
 .ct-unit-btn.active { background: var(--accent); color: var(--accent-ink); }
 
-/* ── Saved-meal cards (reuse ct-meal but need a remove button in head) ─────── */
-
-.ct-saved-meal-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 9px;
-  margin-bottom: 4px;
-}
-
-.ct-saved-meal-info { flex: 1; min-width: 0; }
-
-.ct-saved-meal-kcal {
-  font-family: var(--font-display);
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 3px;
-  letter-spacing: 0.3px;
-}
-
-.ct-saved-meal-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.ct-quick-add-btn {
-  border: none;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: .15s;
-  white-space: nowrap;
-}
-.ct-quick-add-btn:hover { opacity: 0.8; }
-
-/* ── Sheet meal-type picker (quick-add) ─────────────────────────────────────── */
-
-.ct-meal-type-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 4px 0;
-}
-
-.ct-meal-type-btn {
-  border: 1.5px solid var(--line);
-  background: none;
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--muted);
-  cursor: pointer;
-  transition: .15s;
-}
-.ct-meal-type-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-/* ── Sheet date input ───────────────────────────────────────────────────────── */
-
-.ct-date-in {
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  font-size: 15px;
-  font-family: inherit;
-  color: var(--ink);
-  background: var(--card);
-  outline: none;
-  width: 100%;
-  box-sizing: border-box;
-  font-weight: 600;
-  transition: border-color .15s;
-  color-scheme: light dark;
-}
-.ct-date-in:focus { border-color: var(--accent); }
-
 /* ── Goals page ─────────────────────────────────────────────────────────────── */
 
 .ct-goals-note {
@@ -1142,113 +995,179 @@
   letter-spacing: 1px;
 }
 
-/* ── Multi-select → create meal ─────────────────────────────────────────────── */
+/* ── Bottom tab bar ─────────────────────────────────────────────────────────── */
 
-.ct-select-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 22px;
-  margin: 0 4px 11px;
+.ct-app { --tabbar-h: 58px; }
+
+/* Signed-in pages: keep content clear of the fixed tab bar */
+.ct-tabbed {
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
 }
-.ct-select-toggle {
-  border: none;
-  background: none;
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
-  cursor: pointer;
-  padding: 4px 0;
-}
-.ct-select-toggle:hover { opacity: 0.8; }
-.ct-select-hint {
-  font-family: var(--font-display);
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.6px;
-}
-.ct-select-count {
-  font-family: var(--font-display);
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 1px;
-  white-space: nowrap;
+.ct-tabbed .ct-scroll,
+.ct-tabbed .ct-page {
+  min-height: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom));
 }
 
-/* Item row in selection mode */
-.ct-item-selectable {
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.ct-item-check {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  border: 1.5px solid var(--line);
-  background: var(--card);
-  color: var(--accent-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background .15s, border-color .15s;
-}
-.ct-item-selected .ct-item-check {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.ct-item-selected .ct-item-name { color: var(--accent); }
-
-/* Pinned selection action bar */
-.ct-action-bar {
+.ct-tabbar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 60;
+  z-index: 40; /* above sticky page headers (10), below sheet scrims (50) */
   display: flex;
-  gap: 10px;
   max-width: 430px;
   margin: 0 auto;
-  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
   background: var(--card);
-  border-radius: 18px 18px 0 0;
-  box-shadow: 0 -10px 36px rgba(40, 24, 14, 0.22);
+  border-top: 1px solid var(--line);
 }
-.ct-action-cancel {
-  flex-shrink: 0;
-  border: 1.5px solid var(--line);
-  background: none;
+.ct-tab {
+  position: relative;
+  flex: 1;
+  min-height: var(--tabbar-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   color: var(--muted);
+  text-decoration: none;
+  transition: color .15s;
+}
+.ct-tab:hover { color: var(--ink); }
+.ct-tab.active { color: var(--accent); }
+.ct-tab.active::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 28px;
+  height: 2px;
+  transform: translateX(-50%);
+  background: var(--accent);
+  border-radius: 0 0 2px 2px;
+}
+.ct-tab-label {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  padding: 0 18px;
+  line-height: 1;
+}
+.ct-dark-theme .ct-tab.active svg {
+  filter: drop-shadow(0 0 4px rgba(255,122,26,0.45));
+}
+
+/* ── Empty state (Metrics placeholder) ──────────────────────────────────────── */
+
+.ct-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.ct-empty-state svg { margin-bottom: 4px; color: var(--accent); }
+.ct-empty-state-cap {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--ink);
+}
+.ct-empty-state-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ── Profile page ───────────────────────────────────────────────────────────── */
+
+.ct-sections { display: flex; flex-direction: column; gap: 12px; }
+.ct-section {
+  padding: 13px 15px 15px;
+  scroll-margin-top: 64px; /* clear the sticky page header on #hash jumps */
+}
+.ct-section .ct-goals-note { padding-top: 8px; }
+.ct-section-btn { width: 100%; margin-top: 10px; min-height: 48px; }
+
+.ct-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ct-pref-row:last-child { border-bottom: none; padding-bottom: 0; }
+.ct-pref-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.ct-pref-btn { min-width: 60px; }
+
+.ct-logout-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border: 1.5px solid var(--redline);
+  background: none;
+  color: var(--redline);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s;
+}
+.ct-logout-btn:hover { background: color-mix(in srgb, var(--redline) 10%, transparent); }
+
+/* Confirmation sheet body + actions */
+.ct-sheet-text {
+  margin: -4px 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.ct-sheet-actions {
+  display: flex;
+  gap: 10px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.ct-sheet-cancel,
+.ct-sheet-danger {
+  flex: 1;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
   cursor: pointer;
   transition: .15s;
 }
-.ct-action-cancel:hover { color: var(--ink); border-color: var(--ink); }
-.ct-action-create {
-  flex: 1;
-  border: none;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 14px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+.ct-sheet-cancel {
+  border: 1.5px solid var(--line);
+  background: none;
+  color: var(--muted);
 }
-.ct-action-create:disabled { opacity: 0.4; cursor: default; }
+.ct-sheet-cancel:hover { color: var(--ink); border-color: var(--ink); }
+.ct-sheet-danger {
+  border: none;
+  background: var(--redline);
+  color: #FFFFFF;
+}
+.ct-sheet-cancel:disabled,
+.ct-sheet-danger:disabled { opacity: 0.5; cursor: default; }
