@@ -67,3 +67,23 @@ export interface RecentFood {
   /** ISO-8601 offset string of the most-recent log entry for this food. */
   addedAt: string
 }
+
+/** One day of `/api/diary/summary`: what was eaten and the goal in effect that day. */
+export interface DaySummary {
+  /** YYYY-MM-DD */
+  date: string
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
+  fiber: number
+  goalCalories: number
+}
+
+export interface WeighIn {
+  id: number
+  /** YYYY-MM-DD — at most one weigh-in per date. */
+  date: string
+  /** Always stored in kg; convert for display with `formatWeight`. */
+  weightKg: number
+}
