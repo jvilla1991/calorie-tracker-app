@@ -51,9 +51,11 @@ const comma = (n: number) => Math.round(n).toLocaleString('en-US')
 interface Props {
   totals: MacroTotals
   goal: DailyGoal
+  /** When set, the "2,200 goal" caption becomes a button (e.g. to edit goals). */
+  onGoalClick?: () => void
 }
 
-export default function GaugeHero({ totals, goal }: Props) {
+export default function GaugeHero({ totals, goal, onGoalClick }: Props) {
   const eaten = totals.calories
   const goalK = goal.calories
   const remaining = goalK - eaten
@@ -181,7 +183,21 @@ export default function GaugeHero({ totals, goal }: Props) {
           <div className={'ct-lcd-num' + (over ? ' over' : '')}>
             {over ? '+' : ''}{comma(Math.abs(remaining))}
           </div>
-          <div className="ct-lcd-cap">{over ? 'over' : 'left'} · {comma(goalK)} goal</div>
+          <div className="ct-lcd-cap">
+            {over ? 'over' : 'left'} ·{' '}
+            {onGoalClick ? (
+              <button
+                type="button"
+                className="ct-lcd-goal"
+                onClick={onGoalClick}
+                aria-label={`Daily goal ${comma(goalK)} kcal — edit goals`}
+              >
+                {comma(goalK)} goal<span className="ct-lcd-goal-arrow" aria-hidden>›</span>
+              </button>
+            ) : (
+              <>{comma(goalK)} goal</>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -158,7 +158,7 @@ export default function DiaryPage() {
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
           </div>
         ) : (
-          <GaugeHero totals={totals} goal={effectiveGoals} />
+          <GaugeHero totals={totals} goal={effectiveGoals} onGoalClick={() => navigate('/profile#goals')} />
         )}
 
         {/* Macro dials */}

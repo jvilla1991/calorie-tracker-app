@@ -226,6 +226,32 @@
   color: var(--muted);
   white-space: nowrap;
 }
+/* Tappable goal caption: looks like the caption text, but with a ≥44px-tall hit
+   area (padding cancelled by negative margin so the LCD layout doesn't move). */
+.ct-lcd-goal {
+  display: inline-block;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 16px 8px;
+  margin: -16px -8px;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  text-underline-offset: 3px;
+  transition: color .15s;
+}
+.ct-lcd-goal:hover { color: var(--ink); }
+.ct-lcd-goal:focus-visible { outline: none; color: var(--accent); }
+.ct-lcd-goal-arrow {
+  display: inline-block;
+  margin-left: 3px;
+  color: var(--accent);
+  text-decoration: none;
+}
 .ct-lcd-div {
   width: 1px;
   background: var(--line);
