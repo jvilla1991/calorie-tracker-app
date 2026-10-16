@@ -187,6 +187,24 @@ export default function DiaryPage() {
             const isCreating = pendingMealType === mealType
             const mealKcal = meal ? Math.round(meal.totals.calories) : 0
 
+            // Nothing logged yet: one compact row instead of a title + full-width button.
+            if (!meal || meal.items.length === 0) {
+              return (
+                <div key={mealType} className="ct-meal ct-card ct-meal-empty">
+                  <span className="ct-meal-title">{label}</span>
+                  <button
+                    type="button"
+                    className="ct-log-btn"
+                    onClick={() => handleOpenAddFood(mealType)}
+                    disabled={isCreating}
+                    aria-label={`Log item to ${label}`}
+                  >
+                    <span className="ct-log-chip">{isCreating ? 'Opening…' : '+ Log'}</span>
+                  </button>
+                </div>
+              )
+            }
+
             return (
               <div key={mealType} className="ct-meal ct-card">
                 <div className="ct-meal-head">
@@ -194,7 +212,7 @@ export default function DiaryPage() {
                   {mealKcal > 0 && <span className="ct-meal-kcal">{mealKcal} kcal</span>}
                 </div>
 
-                {meal && meal.items.length > 0 && (
+                {meal.items.length > 0 && (
                   <div className="ct-meal-list">
                     {meal.items.map((item) => (
                       <div className="ct-item ct-item-mono" key={item.id}>

@@ -490,6 +490,43 @@
 .ct-add-plus { font-size: 16px; line-height: 1; }
 .ct-footspace { height: 28px; }
 
+/* Empty meal: title + "+ LOG" on one compact row. The button is a 44px-tall hit
+   area; the chip inside is the visual. */
+.ct-meal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 9px 4px 15px;
+}
+.ct-log-btn {
+  min-height: 44px;
+  border: none;
+  background: none;
+  padding: 0 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.ct-log-chip {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 6px 11px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.ct-log-btn:hover .ct-log-chip { background: var(--accent); color: var(--accent-ink); }
+.ct-log-btn:disabled { opacity: 0.5; cursor: default; }
+.ct-log-btn:focus-visible { outline: none; }
+.ct-log-btn:focus-visible .ct-log-chip { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* ── Add sheet ──────────────────────────────────────────────────────────────── */
 
 .ct-sheet-scrim {
