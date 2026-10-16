@@ -4,6 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { searchFoods, lookupBarcode, createFood, getRecentFoods } from '../api/foods'
 import type { Food, FoodSearchResult, RecentFood } from '../types'
 import BarcodeScannerView from './BarcodeScannerView'
+import { useScrollLock } from '../hooks/useScrollLock'
 
 const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
@@ -32,6 +33,8 @@ interface Props {
 export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: Props) {
   // Slide-in animation
   const [open, setOpen] = useState(false)
+  // Mounted only while the sheet is up, so lock for the component's whole lifetime.
+  useScrollLock(true)
   useEffect(() => {
     const id = requestAnimationFrame(() => setOpen(true))
     return () => cancelAnimationFrame(id)
