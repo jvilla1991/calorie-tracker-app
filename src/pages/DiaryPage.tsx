@@ -131,24 +131,39 @@ export default function DiaryPage() {
           the overflow-x:hidden container and renders correctly at viewport level. */}
       <div className="ct-scroll">
         {/* Header */}
+        {/* Header: greeting + badge share the first row; the date row runs full width
+            underneath so long dates never collide with the badge on narrow phones. */}
         <header className="ct-top">
-          <div>
+          <div className="ct-top-row">
             <div className="ct-greet">{greeting()}</div>
-            <div className="ct-date-nav">
-              <button className="ct-date-btn" onClick={() => navigate(`/diary/${shiftDate(currentDate, -1)}`)}>‹</button>
-              <span className="ct-date">{dateLabel}</span>
-              <button
-                className="ct-date-btn"
-                onClick={() => navigate(`/diary/${shiftDate(currentDate, 1)}`)}
-                disabled={currentDate >= today}
-              >›</button>
-              {!isToday && (
-                <button className="ct-today-link" onClick={() => navigate(`/diary/${today}`)}>TODAY</button>
+            <div className="ct-top-right">
+              {isToday ? (
+                <div className="ct-cluster-badge">● REC · TODAY</div>
+              ) : (
+                <button
+                  type="button"
+                  className="ct-today-chip"
+                  onClick={() => navigate(`/diary/${today}`)}
+                  aria-label="Jump to today"
+                >
+                  <span className="ct-cluster-badge">TODAY ›</span>
+                </button>
               )}
             </div>
           </div>
-          <div className="ct-top-right">
-            <div className="ct-cluster-badge">● REC · TODAY</div>
+          <div className="ct-date-nav">
+            <button
+              className="ct-date-btn"
+              onClick={() => navigate(`/diary/${shiftDate(currentDate, -1)}`)}
+              aria-label="Previous day"
+            >‹</button>
+            <span className="ct-date">{dateLabel}</span>
+            <button
+              className="ct-date-btn"
+              onClick={() => navigate(`/diary/${shiftDate(currentDate, 1)}`)}
+              disabled={currentDate >= today}
+              aria-label="Next day"
+            >›</button>
           </div>
         </header>
 
