@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getGoals, updateGoals } from '../api/goals'
 import { useTheme } from '../contexts/ThemeContext'
 import { useSettings } from '../contexts/settings'
+import { useSheet } from '../hooks/useSheet'
 import type { DailyGoal } from '../types'
 
 type GoalForm = Omit<DailyGoal, 'id' | 'effectiveFrom'>
@@ -20,20 +21,6 @@ const DEFAULTS: GoalForm = { calories: 2000, protein: 150, carbs: 200, fat: 65, 
 
 /** Name of the Workbox runtime cache for API responses (see vite.config.ts). */
 const API_CACHE = 'api-cache'
-
-// Animated bottom sheet: mount, then flip `open` next frame so the slide-in transition runs.
-function useSheet() {
-  const [visible, setVisible] = useState(false)
-  const [open, setOpen] = useState(false)
-
-  const show = () => { setVisible(true); requestAnimationFrame(() => setOpen(true)) }
-  const hide = () => {
-    setOpen(false)
-    setTimeout(() => setVisible(false), 360)
-  }
-
-  return { visible, open, show, hide }
-}
 
 /** Goals form. Mounted only once goals have loaded, so its initial state is the saved values. */
 function GoalsForm({ initial }: { initial: GoalForm }) {
