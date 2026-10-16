@@ -676,6 +676,92 @@
   letter-spacing: 0.3px;
 }
 
+/* Recent / History row: body button (opens recent-confirm) + trailing re-log button.
+   The outer .ct-food keeps the row look; padding moves to the children so the
+   whole row stays tappable. */
+.ct-recent-row {
+  gap: 4px;
+  padding: 0 0 0 6px;
+}
+.ct-recent-hit {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: none;
+  padding: 10px 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+/* Long names / brands truncate instead of pushing the pill and + off-screen */
+.ct-recent-row .ct-food-name,
+.ct-recent-row .ct-food-macros {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* One-tap re-log: 44×44 hit area, small accent square inside */
+.ct-relog-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ct-relog-ic {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  transition: background .15s, color .15s, transform .1s;
+}
+.ct-relog-btn:active .ct-relog-ic { transform: scale(0.9); }
+.ct-relog-btn.done { cursor: default; }
+.ct-relog-btn.done .ct-relog-ic {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 15px;
+}
+.ct-relog-btn:focus-visible { outline: none; }
+.ct-relog-btn:focus-visible .ct-relog-ic { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Infinite-scroll sentinel + status rows under the Recent list */
+.ct-pick-sentinel { height: 1px; }
+.ct-pick-status {
+  display: block;
+  width: 100%;
+  padding: 14px 4px 18px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--muted);
+  border: none;
+  background: none;
+}
+.ct-pick-retry { cursor: pointer; min-height: 44px; color: var(--accent); }
+
 /* Section heading inside recent-confirm */
 .ct-recent-section-label {
   font-family: var(--font-display);
