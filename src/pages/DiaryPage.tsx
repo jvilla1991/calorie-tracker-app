@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import type { TouchEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getDiary, addMeal, addItem, deleteItem } from '../api/diary'
@@ -27,6 +28,11 @@ const identOf = (name: string) =>
 function fmt(d: Date) { return d.toISOString().slice(0, 10) }
 function parseLocal(s: string) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
 function shiftDate(s: string, days: number) { const d = parseLocal(s); d.setDate(d.getDate() + days); return fmt(d) }
+// Swipe-to-change-day thresholds
+const SWIPE_MIN_DX = 60     // px of horizontal travel before it counts
+const SWIPE_RATIO = 1.5     // horizontal travel must dominate vertical by this much
+const SWIPE_EDGE = 20       // ignore touches starting this close to a screen edge (iOS back gesture)
+
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -92,6 +98,41 @@ export default function DiaryPage() {
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
 
+  // ── Swipe to change day ─────────────────────────────────────────────────────
+  // Measured from touchstart to touchend only — touchmove is never cancelled, so
+  // vertical scrolling is untouched (the container also sets touch-action: pan-y).
+  const swipeStart = useRef<{ x: number; y: number } | null>(null)
+  const [swipeAnim, setSwipeAnim] = useState<'next' | 'prev' | null>(null)
+
+  const handleTouchStart = (e: TouchEvent) => {
+    swipeStart.current = null
+    if (e.touches.length !== 1) return
+    // Sheets and anything marked data-no-swipe keep their own gestures.
+    if ((e.target as Element).closest?.('.ct-sheet-scrim, [data-no-swipe]')) return
+    const t = e.touches[0]
+    if (t.clientX < SWIPE_EDGE || t.clientX > window.innerWidth - SWIPE_EDGE) return
+    swipeStart.current = { x: t.clientX, y: t.clientY }
+  }
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    const start = swipeStart.current
+    swipeStart.current = null
+    const t = e.changedTouches[0]
+    if (!start || !t) return
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    if (Math.abs(dx) <= SWIPE_MIN_DX || Math.abs(dx) <= SWIPE_RATIO * Math.abs(dy)) return
+    if (dx < 0) {
+      // Swipe left → next day, never past today (same rule as the › button)
+      if (currentDate >= today) return
+      if (!prefersReducedMotion()) setSwipeAnim('next')
+      navigate(`/diary/${shiftDate(currentDate, 1)}`)
+    } else {
+      if (!prefersReducedMotion()) setSwipeAnim('prev')
+      navigate(`/diary/${shiftDate(currentDate, -1)}`)
+    }
+  }
+
   const { data: diary, isLoading } = useQuery({
     queryKey: ['diary', currentDate],
     queryFn: () => getDiary(currentDate),
@@ -155,7 +196,12 @@ export default function DiaryPage() {
     <>
       {/* Scrollable content — kept separate so the fixed sheet overlay sits outside
           the overflow-x:hidden container and renders correctly at viewport level. */}
-      <div className="ct-scroll">
+      <div
+        className="ct-scroll"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={() => { swipeStart.current = null }}
+      >
         {/* Header */}
         {/* Header: greeting + badge share the first row; the date row runs full width
             underneath so long dates never collide with the badge on narrow phones. */}
@@ -193,85 +239,92 @@ export default function DiaryPage() {
           </div>
         </header>
 
-        {/* Gauge hero — the wrapper is what the readout strip's observer watches */}
-        <div ref={gaugeRef}>
-          {isLoading ? (
-            <div className="ct-card ct-gauge-card" style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
-            </div>
-          ) : (
-            <GaugeHero totals={totals} goal={effectiveGoals} onGoalClick={() => navigate('/profile#goals')} />
-          )}
-        </div>
+        {/* Day content — gets a short slide-in nudge after a swipe */}
+        <div
+          className={'ct-day' + (swipeAnim ? ` ct-swipe-${swipeAnim}` : '')}
+          onAnimationEnd={(e) => { if (e.target === e.currentTarget) setSwipeAnim(null) }}
+        >
+          {/* Gauge hero — the wrapper is what the readout strip's observer watches */}
+          <div ref={gaugeRef}>
+            {isLoading ? (
+              <div className="ct-card ct-gauge-card" style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
+              </div>
+            ) : (
+              <GaugeHero totals={totals} goal={effectiveGoals} onGoalClick={() => navigate('/profile#goals')} />
+            )}
+          </div>
 
-        {/* Macro dials */}
-        <MacroDials totals={totals} goal={effectiveGoals} />
+          {/* Macro dials */}
+          <MacroDials totals={totals} goal={effectiveGoals} />
 
-        {/* Meal cards */}
-        <div className="ct-meals">
-          {MEAL_ORDER.map((mealType) => {
-            const meal = sortedMeals.find((m) => m.mealType === mealType)
-            const label = MEAL_LABELS[mealType] ?? mealType
-            const isCreating = pendingMealType === mealType
-            const mealKcal = meal ? Math.round(meal.totals.calories) : 0
+          {/* Meal cards */}
+          <div className="ct-meals">
+            {MEAL_ORDER.map((mealType) => {
+              const meal = sortedMeals.find((m) => m.mealType === mealType)
+              const label = MEAL_LABELS[mealType] ?? mealType
+              const isCreating = pendingMealType === mealType
+              const mealKcal = meal ? Math.round(meal.totals.calories) : 0
 
-            // Nothing logged yet: one compact row instead of a title + full-width button.
-            if (!meal || meal.items.length === 0) {
+              // Nothing logged yet: one compact row instead of a title + full-width button.
+              if (!meal || meal.items.length === 0) {
+                return (
+                  <div key={mealType} className="ct-meal ct-card ct-meal-empty">
+                    <span className="ct-meal-title">{label}</span>
+                    <button
+                      type="button"
+                      className="ct-log-btn"
+                      onClick={() => handleOpenAddFood(mealType)}
+                      disabled={isCreating}
+                      aria-label={`Log item to ${label}`}
+                    >
+                      <span className="ct-log-chip">{isCreating ? 'Opening…' : '+ Log'}</span>
+                    </button>
+                  </div>
+                )
+              }
+
               return (
-                <div key={mealType} className="ct-meal ct-card ct-meal-empty">
-                  <span className="ct-meal-title">{label}</span>
+                <div key={mealType} className="ct-meal ct-card">
+                  <div className="ct-meal-head">
+                    <span className="ct-meal-title">{label}</span>
+                    {mealKcal > 0 && <span className="ct-meal-kcal">{mealKcal} kcal</span>}
+                  </div>
+
+                  {meal.items.length > 0 && (
+                    <div className="ct-meal-list">
+                      {meal.items.map((item) => (
+                        <div className="ct-item ct-item-mono" key={item.id}>
+                          <span className="ct-item-ident">{identOf(item.food.name)}</span>
+                          <span className="ct-item-name">{item.food.name}</span>
+                          <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
+                          <button
+                            className="ct-item-x"
+                            onClick={() => deleteItemMut.mutate(item.id)}
+                            aria-label="Remove"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 13 13">
+                              <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <button
-                    type="button"
-                    className="ct-log-btn"
+                    className="ct-add-btn"
                     onClick={() => handleOpenAddFood(mealType)}
                     disabled={isCreating}
-                    aria-label={`Log item to ${label}`}
                   >
-                    <span className="ct-log-chip">{isCreating ? 'Opening…' : '+ Log'}</span>
+                    <span className="ct-add-plus">+</span>
+                    {isCreating ? 'Opening…' : 'Log item'}
                   </button>
                 </div>
               )
-            }
+            })}
+          </div>
 
-            return (
-              <div key={mealType} className="ct-meal ct-card">
-                <div className="ct-meal-head">
-                  <span className="ct-meal-title">{label}</span>
-                  {mealKcal > 0 && <span className="ct-meal-kcal">{mealKcal} kcal</span>}
-                </div>
-
-                {meal.items.length > 0 && (
-                  <div className="ct-meal-list">
-                    {meal.items.map((item) => (
-                      <div className="ct-item ct-item-mono" key={item.id}>
-                        <span className="ct-item-ident">{identOf(item.food.name)}</span>
-                        <span className="ct-item-name">{item.food.name}</span>
-                        <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
-                        <button
-                          className="ct-item-x"
-                          onClick={() => deleteItemMut.mutate(item.id)}
-                          aria-label="Remove"
-                        >
-                          <svg width="13" height="13" viewBox="0 0 13 13">
-                            <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <button
-                  className="ct-add-btn"
-                  onClick={() => handleOpenAddFood(mealType)}
-                  disabled={isCreating}
-                >
-                  <span className="ct-add-plus">+</span>
-                  {isCreating ? 'Opening…' : 'Log item'}
-                </button>
-              </div>
-            )
-          })}
         </div>
 
         <div className="ct-footspace" />
