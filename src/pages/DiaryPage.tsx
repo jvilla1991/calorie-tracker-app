@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import type { TouchEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -8,7 +8,7 @@ import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import ReadoutStrip from '../components/ReadoutStrip'
 import FoodSearchModal from '../components/FoodSearchModal'
-import type { Food, DailyGoal, MacroTotals } from '../types'
+import type { Food, DailyGoal, MacroTotals, DiaryResponse } from '../types'
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Breakfast',
@@ -28,10 +28,38 @@ const identOf = (name: string) =>
 function fmt(d: Date) { return d.toISOString().slice(0, 10) }
 function parseLocal(s: string) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
 function shiftDate(s: string, days: number) { const d = parseLocal(s); d.setDate(d.getDate() + days); return fmt(d) }
+/** How long the "Removed … UNDO" toast waits before the delete is actually sent. */
+const UNDO_MS = 5000
+
+const subTotals = (a: MacroTotals, b: MacroTotals): MacroTotals => ({
+  calories: Math.max(0, a.calories - b.calories),
+  protein: Math.max(0, a.protein - b.protein),
+  carbs: Math.max(0, a.carbs - b.carbs),
+  fat: Math.max(0, a.fat - b.fat),
+  fiber: Math.max(0, a.fiber - b.fiber),
+})
+
+/** The diary with one item removed and the meal + day totals reduced to match. */
+function withoutItem(d: DiaryResponse, itemId: number): DiaryResponse {
+  const item = d.meals.flatMap((m) => m.items).find((i) => i.id === itemId)
+  if (!item) return d
+  return {
+    ...d,
+    totals: subTotals(d.totals, item.macros),
+    meals: d.meals.map((m) =>
+      m.items.some((i) => i.id === itemId)
+        ? { ...m, items: m.items.filter((i) => i.id !== itemId), totals: subTotals(m.totals, item.macros) }
+        : m
+    ),
+  }
+}
+
 // Swipe-to-change-day thresholds
 const SWIPE_MIN_DX = 60     // px of horizontal travel before it counts
 const SWIPE_RATIO = 1.5     // horizontal travel must dominate vertical by this much
 const SWIPE_EDGE = 20       // ignore touches starting this close to a screen edge (iOS back gesture)
+
+type PendingDelete = { itemId: number; name: string; date: string }
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -165,10 +193,52 @@ export default function DiaryPage() {
     },
   })
 
-  const deleteItemMut = useMutation({
-    mutationFn: deleteItem,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['diary', currentDate] }),
-  })
+  // ── Delete with undo ────────────────────────────────────────────────────────
+  // Tapping ✕ only *hides* the item (and takes it out of the totals) and shows an
+  // undo toast. The real DELETE is sent when the toast times out, when another item
+  // is deleted, or when the user changes day / leaves the page / backgrounds the app.
+  // The ref is the source of truth (timers and cleanups read it); state drives render.
+  const pendingRef = useRef<PendingDelete | null>(null)
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+
+  const commitDelete = useCallback(() => {
+    const p = pendingRef.current
+    if (!p) return
+    pendingRef.current = null
+    clearTimeout(undoTimer.current)
+    setPendingDelete(null)
+    const key = ['diary', p.date]
+    // Remove it from the cache right away so the row doesn't flash back while the
+    // request is in flight; cancel any refetch that could still return the old list.
+    qc.cancelQueries({ queryKey: key })
+    qc.setQueryData<DiaryResponse>(key, (d) => (d ? withoutItem(d, p.itemId) : d))
+    deleteItem(p.itemId)
+      .catch(() => { /* the refetch below brings the item back if the delete failed */ })
+      .finally(() => qc.invalidateQueries({ queryKey: key }))
+  }, [qc])
+
+  const handleDelete = (itemId: number, name: string) => {
+    commitDelete() // only one pending delete at a time — send the previous one now
+    pendingRef.current = { itemId, name, date: currentDate }
+    setPendingDelete(pendingRef.current)
+    undoTimer.current = setTimeout(commitDelete, UNDO_MS)
+  }
+
+  const undoDelete = () => {
+    clearTimeout(undoTimer.current)
+    pendingRef.current = null
+    setPendingDelete(null)
+  }
+
+  // Flush a pending delete when the day changes or the page unmounts…
+  useEffect(() => () => commitDelete(), [currentDate, commitDelete])
+  // …and when the app is backgrounded (an installed PWA may be killed without unmounting).
+  useEffect(() => {
+    const onVisibility = () => { if (document.visibilityState === 'hidden') commitDelete() }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [commitDelete])
 
   const handleOpenAddFood = (mealType: string) => {
     const existing = diary?.meals.find((m) => m.mealType === mealType)
@@ -185,10 +255,15 @@ export default function DiaryPage() {
     addItemMut.mutate({ mealId: activeSheet.mealId, foodId: food.id, grams })
   }
 
-  const totals = diary?.totals ?? EMPTY_TOTALS
+  // What the page shows: the server diary minus an item waiting in the undo window.
+  const shownDiary = diary && pendingDelete && pendingDelete.date === currentDate
+    ? withoutItem(diary, pendingDelete.itemId)
+    : diary
+
+  const totals = shownDiary?.totals ?? EMPTY_TOTALS
   const effectiveGoals = goals ?? DEFAULT_GOALS
 
-  const sortedMeals = [...(diary?.meals ?? [])].sort(
+  const sortedMeals = [...(shownDiary?.meals ?? [])].sort(
     (a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)
   )
 
@@ -300,12 +375,14 @@ export default function DiaryPage() {
                           <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
                           <button
                             className="ct-item-x"
-                            onClick={() => deleteItemMut.mutate(item.id)}
-                            aria-label="Remove"
+                            onClick={() => handleDelete(item.id, item.food.name)}
+                            aria-label={`Remove ${item.food.name}`}
                           >
-                            <svg width="13" height="13" viewBox="0 0 13 13">
-                              <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                            </svg>
+                            <span className="ct-item-x-ic">
+                              <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
+                                <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                              </svg>
+                            </span>
                           </button>
                         </div>
                       ))}
@@ -333,6 +410,16 @@ export default function DiaryPage() {
       {/* Pinned readout while the gauge is scrolled away — outside ct-scroll so
           position:fixed is relative to the viewport. */}
       <ReadoutStrip totals={totals} goal={effectiveGoals} visible={stripVisible} onClick={scrollToTop} />
+
+      {/* Undo toast — the live region is always mounted so screen readers announce it */}
+      <div className="ct-toast-region" aria-live="polite">
+        {pendingDelete && (
+          <div className="ct-toast" key={pendingDelete.itemId}>
+            <span className="ct-toast-text">Removed {pendingDelete.name}</span>
+            <button type="button" className="ct-toast-undo" onClick={undoDelete}>Undo</button>
+          </div>
+        )}
+      </div>
 
       {/* Food search sheet — rendered OUTSIDE ct-scroll so position:fixed works
           correctly regardless of the parent's overflow-x:hidden. */}
