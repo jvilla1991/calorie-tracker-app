@@ -6,7 +6,6 @@ import { getGoals } from '../api/goals'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import FoodSearchModal from '../components/FoodSearchModal'
-import { useTheme } from '../contexts/ThemeContext'
 import type { Food, DailyGoal, MacroTotals } from '../types'
 
 const MEAL_LABELS: Record<string, string> = {
@@ -35,7 +34,6 @@ function greeting() {
 export default function DiaryPage() {
   const { date } = useParams<{ date: string }>()
   const navigate = useNavigate()
-  const { toggle, dark } = useTheme()
   const qc = useQueryClient()
   const today = fmt(new Date())
   const currentDate = date ?? today
@@ -126,9 +124,6 @@ export default function DiaryPage() {
           </div>
           <div className="ct-top-right">
             <div className="ct-cluster-badge">● REC · TODAY</div>
-            <button className="ct-theme-toggle" onClick={toggle} title="Toggle theme">
-              {dark ? '☀' : '◑'}
-            </button>
           </div>
         </header>
 

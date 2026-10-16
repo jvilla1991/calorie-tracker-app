@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import { SettingsProvider } from './contexts/SettingsContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import TabLayout from './components/TabLayout'
 import LoginPage from './pages/LoginPage'
 import DiaryPage from './pages/DiaryPage'
-import GoalsPage from './pages/GoalsPage'
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
+import MetricsPage from './pages/MetricsPage'
+import ProfilePage from './pages/ProfilePage'
+import { todayStr } from './utils/date'
 
 function ThemedShell() {
   const { dark } = useTheme()
@@ -25,23 +25,15 @@ function ThemedShell() {
           }
         />
 
-        <Route
-          path="/diary/:date"
-          element={
-            <ProtectedRoute>
-              <DiaryPage />
-            </ProtectedRoute>
-          }
-        />
+        {/* Signed-in pages share the bottom tab bar */}
+        <Route element={<TabLayout />}>
+          <Route path="/diary/:date" element={<DiaryPage />} />
+          <Route path="/metrics" element={<MetricsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
-        <Route
-          path="/goals"
-          element={
-            <ProtectedRoute>
-              <GoalsPage />
-            </ProtectedRoute>
-          }
-        />
+        {/* Goals now live on the Profile page */}
+        <Route path="/goals" element={<Navigate to="/profile#goals" replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -52,7 +44,9 @@ function ThemedShell() {
 export default function App() {
   return (
     <ThemeProvider>
-      <ThemedShell />
+      <SettingsProvider>
+        <ThemedShell />
+      </SettingsProvider>
     </ThemeProvider>
   )
 }
