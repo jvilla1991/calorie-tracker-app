@@ -70,7 +70,11 @@ export default function DiaryPage() {
   const addItemMut = useMutation({
     mutationFn: ({ mealId, foodId, grams }: { mealId: number; foodId: number; grams: number }) =>
       addItem(mealId, foodId, grams),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['diary', currentDate] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['diary', currentDate] })
+      // The food just logged becomes the most recent — refresh the log sheet's history.
+      qc.invalidateQueries({ queryKey: ['recent-foods'] })
+    },
   })
 
   const deleteItemMut = useMutation({

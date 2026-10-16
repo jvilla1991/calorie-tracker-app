@@ -10,6 +10,10 @@ export const lookupBarcode = (barcode: string) =>
 export const createFood = (body: Omit<Food, 'id' | 'source'>) =>
   api.post<Food>('/foods', body).then((r) => r.data)
 
-/** Last 10 distinct foods logged, most-recent first, each with its last-used quantity. */
-export const getRecentFoods = () =>
-  api.get<RecentFood[]>('/foods/recent').then((r) => r.data)
+/**
+ * One page of the distinct foods you've logged, most-recent first, each with its
+ * last-used quantity. Pages are 0-based; `size` is capped at 50 by the API.
+ * A page shorter than `size` means there are no more pages.
+ */
+export const getRecentFoods = (page: number, size = 20) =>
+  api.get<RecentFood[]>('/foods/recent', { params: { page, size } }).then((r) => r.data)
