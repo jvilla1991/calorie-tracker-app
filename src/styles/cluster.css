@@ -753,6 +753,8 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 -12px 44px rgba(40,24,14,0.20);
+  /* Scrolling past the end of a sheet's list stops at the sheet (no chaining to the page) */
+  overscroll-behavior: contain;
 }
 .ct-sheet.open { transform: translateY(0); }
 .ct-sheet-handle {
@@ -825,6 +827,7 @@
 /* Picker scroll */
 .ct-pick-scroll {
   overflow-y: auto;
+  overscroll-behavior: contain;
   flex: 1;
   margin: 0 -4px;
   padding: 0 4px;
@@ -1127,6 +1130,7 @@
   gap: 12px;
   padding: 4px 2px 2px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   flex: 1;
 }
 .ct-field { display: flex; flex-direction: column; gap: 5px; }
