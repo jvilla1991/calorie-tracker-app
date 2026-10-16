@@ -62,7 +62,8 @@
 .ct-scroll {
   min-height: 100dvh;
   overflow-x: hidden;
-  padding: 2px 16px 0;
+  /* Installed PWA uses viewport-fit=cover: keep the header clear of the notch / status bar */
+  padding: calc(2px + env(safe-area-inset-top)) 16px 0;
   box-sizing: border-box;
   scrollbar-width: none;
   max-width: 430px;
@@ -455,13 +456,16 @@
 }
 .ct-sheet {
   width: 100%;
+  /* Match the 430px app column on wide screens; the scrim stays full-width */
+  max-width: 430px;
+  margin: 0 auto;
   background: var(--card);
   border-radius: 30px 30px 0 0;
   transform: translateY(105%);
   transition: transform .36s cubic-bezier(.32,.72,0,1);
-  padding: 9px 16px 14px;
+  padding: 9px 16px calc(14px + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 -12px 44px rgba(40,24,14,0.20);
@@ -896,7 +900,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 0 16px;
+  padding: calc(14px + env(safe-area-inset-top)) 0 16px;
   position: sticky;
   top: 0;
   background: var(--bg);
@@ -1177,7 +1181,8 @@
 .ct-sections { display: flex; flex-direction: column; gap: 12px; }
 .ct-section {
   padding: 13px 15px 15px;
-  scroll-margin-top: 64px; /* clear the sticky page header on #hash jumps */
+  /* clear the sticky page header (incl. its safe-area padding) on #hash jumps */
+  scroll-margin-top: calc(64px + env(safe-area-inset-top));
 }
 .ct-section .ct-goals-note { padding-top: 8px; }
 .ct-section-btn { width: 100%; margin-top: 10px; min-height: 48px; }
@@ -1229,7 +1234,6 @@
 .ct-sheet-actions {
   display: flex;
   gap: 10px;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 .ct-sheet-cancel,
 .ct-sheet-danger {
