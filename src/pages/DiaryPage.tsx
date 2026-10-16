@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getDiary, addMeal, addItem, deleteItem } from '../api/diary'
 import { getGoals } from '../api/goals'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
+import ReadoutStrip from '../components/ReadoutStrip'
 import FoodSearchModal from '../components/FoodSearchModal'
 import type { Food, DailyGoal, MacroTotals } from '../types'
 
@@ -26,6 +27,9 @@ const identOf = (name: string) =>
 function fmt(d: Date) { return d.toISOString().slice(0, 10) }
 function parseLocal(s: string) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
 function shiftDate(s: string, days: number) { const d = parseLocal(s); d.setDate(d.getDate() + days); return fmt(d) }
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
 function greeting() {
   const h = new Date().getHours()
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
@@ -65,6 +69,28 @@ export default function DiaryPage() {
       qc.invalidateQueries({ queryKey: ['recent-foods'] })
     }
   }
+
+  // Collapsing readout strip: shown while the gauge card is out of view. The negative
+  // top margin treats the band the strip occupies as "off-screen", so the strip takes
+  // over just as the gauge's LCD slides under it rather than after it has vanished.
+  const gaugeRef = useRef<HTMLDivElement>(null)
+  const [stripVisible, setStripVisible] = useState(false)
+  useEffect(() => {
+    const el = gaugeRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        // Only "scrolled past" counts — never show it when the gauge is below the fold.
+        setStripVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0)
+      },
+      { rootMargin: '-64px 0px 0px 0px', threshold: 0 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  const scrollToTop = () =>
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
 
   const { data: diary, isLoading } = useQuery({
     queryKey: ['diary', currentDate],
@@ -167,14 +193,16 @@ export default function DiaryPage() {
           </div>
         </header>
 
-        {/* Gauge hero */}
-        {isLoading ? (
-          <div className="ct-card ct-gauge-card" style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
-          </div>
-        ) : (
-          <GaugeHero totals={totals} goal={effectiveGoals} onGoalClick={() => navigate('/profile#goals')} />
-        )}
+        {/* Gauge hero — the wrapper is what the readout strip's observer watches */}
+        <div ref={gaugeRef}>
+          {isLoading ? (
+            <div className="ct-card ct-gauge-card" style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
+            </div>
+          ) : (
+            <GaugeHero totals={totals} goal={effectiveGoals} onGoalClick={() => navigate('/profile#goals')} />
+          )}
+        </div>
 
         {/* Macro dials */}
         <MacroDials totals={totals} goal={effectiveGoals} />
@@ -248,6 +276,10 @@ export default function DiaryPage() {
 
         <div className="ct-footspace" />
       </div>
+
+      {/* Pinned readout while the gauge is scrolled away — outside ct-scroll so
+          position:fixed is relative to the viewport. */}
+      <ReadoutStrip totals={totals} goal={effectiveGoals} visible={stripVisible} onClick={scrollToTop} />
 
       {/* Food search sheet — rendered OUTSIDE ct-scroll so position:fixed works
           correctly regardless of the parent's overflow-x:hidden. */}

@@ -527,6 +527,107 @@
 .ct-log-btn:focus-visible { outline: none; }
 .ct-log-btn:focus-visible .ct-log-chip { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* ── Collapsing readout strip ───────────────────────────────────────────────── */
+
+/* z-index 30: above page content and sticky page headers (10), below the tab bar (40,
+   which never overlaps it anyway) and the sheet scrims (50) so an open sheet covers it. */
+.ct-strip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: block;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: calc(8px + env(safe-area-inset-top)) 20px 9px;
+  background: var(--card);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.ct-strip.show {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.ct-strip:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .ct-strip { transform: none; transition: none; }
+}
+.ct-strip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.ct-strip-k {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+}
+.ct-strip-unit {
+  margin-left: 5px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.ct-strip-left {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.ct-strip.over .ct-strip-left { color: var(--redline); }
+.ct-strip-bar {
+  display: block;
+  height: 4px;
+  margin: 8px 0 7px;
+  border-radius: 2px;
+  background: var(--ring-track);
+  overflow: hidden;
+}
+.ct-strip-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width .4s ease;
+}
+.ct-strip.over .ct-strip-fill { background: var(--redline); }
+.ct-strip-macros {
+  display: flex;
+  gap: 16px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.ct-strip-target {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 10px;
+}
+.ct-dark-theme .ct-strip-k { text-shadow: 0 0 14px rgba(255,122,26,0.3); }
+.ct-dark-theme .ct-strip-fill { box-shadow: 0 0 6px rgba(255,122,26,0.5); }
+.ct-dark-theme .ct-strip.over .ct-strip-fill { box-shadow: none; }
+
 /* ── Add sheet ──────────────────────────────────────────────────────────────── */
 
 .ct-sheet-scrim {
