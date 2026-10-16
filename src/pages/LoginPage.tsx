@@ -1,6 +1,18 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { isAxiosError } from 'axios'
 import { login } from '../api/auth'
+
+/** Message for a failed login. 401 is the API's answer for bad credentials; 403 is
+ *  kept for older API versions that used it for the same thing. */
+function loginErrorText(err: unknown): string {
+  if (isAxiosError(err)) {
+    const status = err.response?.status
+    if (status === 401 || status === 403) return 'Invalid username or password'
+    if (!err.response) return 'Can’t reach the server — check your connection and try again.'
+  }
+  return 'Login failed — please try again.'
+}
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -17,8 +29,8 @@ export default function LoginPage() {
       const token = await login(username, password)
       localStorage.setItem('ct_token', token)
       navigate('/', { replace: true })
-    } catch {
-      setError('Invalid username or password')
+    } catch (err) {
+      setError(loginErrorText(err))
     } finally {
       setLoading(false)
     }
@@ -66,13 +78,6 @@ export default function LoginPage() {
             >
               {loading ? 'Logging in…' : 'Log In'}
             </button>
-
-            <div style={{ textAlign: 'center', marginTop: 8, fontSize: '0.875rem' }}>
-              Don't have an account?{' '}
-              <Link to="/register" style={{ color: 'inherit', textDecoration: 'underline' }}>
-                Create one
-              </Link>
-            </div>
           </div>
         </form>
       </div>

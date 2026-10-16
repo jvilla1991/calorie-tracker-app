@@ -1,15 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import { SettingsProvider } from './contexts/SettingsContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import TabLayout from './components/TabLayout'
 import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
 import DiaryPage from './pages/DiaryPage'
-import GoalsPage from './pages/GoalsPage'
-import SavedMealsPage from './pages/SavedMealsPage'
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
+import MetricsPage from './pages/MetricsPage'
+import ProfilePage from './pages/ProfilePage'
+import { todayLocal } from './utils/date'
 
 function ThemedShell() {
   const { dark } = useTheme()
@@ -17,43 +15,25 @@ function ThemedShell() {
     <div className={'ct-app ' + (dark ? 'ct-dark-theme' : 'ct-light-theme')}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
 
         <Route
           path="/"
           element={
             <ProtectedRoute>
-              <Navigate to={`/diary/${todayStr()}`} replace />
+              <Navigate to={`/diary/${todayLocal()}`} replace />
             </ProtectedRoute>
           }
         />
 
-        <Route
-          path="/diary/:date"
-          element={
-            <ProtectedRoute>
-              <DiaryPage />
-            </ProtectedRoute>
-          }
-        />
+        {/* Signed-in pages share the bottom tab bar */}
+        <Route element={<TabLayout />}>
+          <Route path="/diary/:date" element={<DiaryPage />} />
+          <Route path="/metrics" element={<MetricsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
-        <Route
-          path="/goals"
-          element={
-            <ProtectedRoute>
-              <GoalsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/saved-meals"
-          element={
-            <ProtectedRoute>
-              <SavedMealsPage />
-            </ProtectedRoute>
-          }
-        />
+        {/* Goals now live on the Profile page */}
+        <Route path="/goals" element={<Navigate to="/profile#goals" replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -64,7 +44,9 @@ function ThemedShell() {
 export default function App() {
   return (
     <ThemeProvider>
-      <ThemedShell />
+      <SettingsProvider>
+        <ThemedShell />
+      </SettingsProvider>
     </ThemeProvider>
   )
 }

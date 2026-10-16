@@ -60,12 +60,6 @@ export interface DailyGoal {
   effectiveFrom?: string
 }
 
-export interface SavedMealItemResponse {
-  food: Food
-  quantityGrams: number
-  macros: MacroTotals
-}
-
 export interface RecentFood {
   food: Food
   /** Always in grams — the canonical storage unit. */
@@ -74,9 +68,22 @@ export interface RecentFood {
   addedAt: string
 }
 
-export interface SavedMeal {
+/** One day of `/api/diary/summary`: what was eaten and the goal in effect that day. */
+export interface DaySummary {
+  /** YYYY-MM-DD */
+  date: string
+  calories: number
+  protein: number
+  carbs: number
+  fat: number
+  fiber: number
+  goalCalories: number
+}
+
+export interface WeighIn {
   id: number
-  name: string
-  items: SavedMealItemResponse[]
-  totals: MacroTotals
+  /** YYYY-MM-DD — at most one weigh-in per date. */
+  date: string
+  /** Always stored in kg; convert for display with `formatWeight`. */
+  weightKg: number
 }

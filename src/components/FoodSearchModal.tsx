@@ -1,13 +1,18 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import type { MouseEvent } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { searchFoods, lookupBarcode, createFood, getRecentFoods } from '../api/foods'
 import type { Food, FoodSearchResult, RecentFood } from '../types'
 import BarcodeScannerView from './BarcodeScannerView'
+import { useScrollLock } from '../hooks/useScrollLock'
 
 const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
 
 const OZ_TO_G = 28.3495
+const RECENT_PAGE_SIZE = 20
+const HISTORY_MATCH_LIMIT = 5
+const RELOG_FEEDBACK_MS = 1200
 const fmt1 = (n: number) => (Math.round(n * 10) / 10).toString()
 
 type Mode = 'pick' | 'recent-confirm' | 'portion' | 'create' | 'scan'
@@ -28,6 +33,8 @@ interface Props {
 export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: Props) {
   // Slide-in animation
   const [open, setOpen] = useState(false)
+  // Mounted only while the sheet is up, so lock for the component's whole lifetime.
+  useScrollLock(true)
   useEffect(() => {
     const id = requestAnimationFrame(() => setOpen(true))
     return () => cancelAnimationFrame(id)
@@ -40,12 +47,42 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
   const [mode, setMode] = useState<Mode>('pick')
 
-  // ── Recent foods ──────────────────────────────────────────────────────────
-  const { data: recentFoods = [] } = useQuery({
+  // ── Recent foods (paginated, infinite scroll) ─────────────────────────────
+  // Key stays ['recent-foods'] so invalidations elsewhere (DiaryPage refreshes it
+  // when this sheet closes after something was logged) refresh every loaded page.
+  const {
+    data: recentData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useInfiniteQuery({
     queryKey: ['recent-foods'],
-    queryFn: getRecentFoods,
+    queryFn: ({ pageParam }) => getRecentFoods(pageParam, RECENT_PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length < RECENT_PAGE_SIZE ? undefined : lastPageParam + 1,
     staleTime: 30_000,
   })
+
+  // Flatten pages and dedupe by food id — if the backend's ordering shifts between
+  // page loads (e.g. a food was logged in between), never show a food twice.
+  const recentFoods = useMemo(() => {
+    const seen = new Set<number>()
+    const out: RecentFood[] = []
+    for (const entry of recentData?.pages.flat() ?? []) {
+      if (seen.has(entry.food.id)) continue
+      seen.add(entry.food.id)
+      out.push(entry)
+    }
+    return out
+  }, [recentData])
+  const recentPageCount = recentData?.pages.length ?? 0
+
+  // Sentinel at the bottom of the Recent list: when it comes within ~200px of the
+  // visible area of the sheet's scroll container, load the next page.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   // ── Pick / search ─────────────────────────────────────────────────────────
   const [q, setQ] = useState('')
@@ -67,6 +104,64 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
     }, 400)
     return () => clearTimeout(t)
   }, [q, mode])
+
+  const showingRecent = mode === 'pick' && !q.trim()
+  useEffect(() => {
+    const root = scrollRef.current
+    const target = sentinelRef.current
+    if (!showingRecent || !root || !target) return
+    if (!hasNextPage || isFetchingNextPage || isFetchNextPageError) return
+    // Re-created after every page load, so if the sentinel is still in range
+    // (short list / tall screen) the initial callback loads the next page too.
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) fetchNextPage() },
+      { root, rootMargin: '0px 0px 200px 0px' },
+    )
+    io.observe(target)
+    return () => io.disconnect()
+  }, [showingRecent, hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage, recentFoods.length])
+
+  // History matches for the current query. NOTE: this only searches pages that
+  // have already been loaded into the Recent list — an accepted limitation.
+  const historyMatches = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    if (!needle) return []
+    return recentFoods
+      .filter((e) =>
+        e.food.name.toLowerCase().includes(needle) ||
+        (e.food.brand ?? '').toLowerCase().includes(needle))
+      .slice(0, HISTORY_MATCH_LIMIT)
+  }, [q, recentFoods])
+  const historyIds = new Set(historyMatches.map((e) => e.food.id))
+  // Don't list a food twice: anything shown under History is dropped from "My foods".
+  const mineResults = results.mine.filter((f) => !historyIds.has(f.id))
+
+  // ── One-tap re-log ────────────────────────────────────────────────────────
+  // Logs a recent food at its last-used quantity without leaving the list, so
+  // several foods can be logged in a row. The sheet stays open on purpose.
+  // onAdd is fire-and-forget (the parent owns the mutation), so a short per-row
+  // lock doubles as the "✓ logged" feedback window and blocks double taps.
+  const [relogged, setRelogged] = useState<ReadonlySet<number>>(() => new Set())
+  const relogLock = useRef(new Set<number>())
+  const relogTimers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
+  useEffect(() => {
+    const timers = relogTimers.current
+    return () => timers.forEach((t) => clearTimeout(t))
+  }, [])
+
+  const quickRelog = (e: MouseEvent, entry: RecentFood) => {
+    e.stopPropagation()
+    const id = entry.food.id
+    if (relogLock.current.has(id)) return
+    relogLock.current.add(id)
+    onAdd(entry.food, entry.quantityGrams)
+    setRelogged((prev) => new Set(prev).add(id))
+    relogTimers.current.set(id, setTimeout(() => {
+      relogLock.current.delete(id)
+      relogTimers.current.delete(id)
+      setRelogged((prev) => { const next = new Set(prev); next.delete(id); return next })
+    }, RELOG_FEEDBACK_MS))
+  }
 
   // ── Recent-confirm state ──────────────────────────────────────────────────
   // Holds the recent entry the user tapped
@@ -117,6 +212,40 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
       </span>
     </button>
   )
+
+  // One recent/history row: tapping the body opens recent-confirm; the trailing
+  // "+" re-logs the last-used quantity in one tap. Two sibling buttons (not
+  // nested) so both stay valid, focusable controls.
+  const renderRecentRow = (entry: RecentFood) => {
+    const { food } = entry
+    const done = relogged.has(food.id)
+    const qty = fmt1(entry.quantityGrams)
+    return (
+      <div className="ct-food ct-recent-row" key={food.id}>
+        <button type="button" className="ct-recent-hit" onClick={() => openRecentConfirm(entry)}>
+          <span className="ct-food-ident">{identOf(food.name)}</span>
+          <span className="ct-food-main">
+            <span className="ct-food-name">{food.name}</span>
+            {food.brand && <span className="ct-food-macros">{food.brand}</span>}
+            <span className="ct-food-macros">
+              P{food.proteinPer100g ?? '?'} · C{food.carbsPer100g ?? '?'} · F{food.fatPer100g ?? '?'}
+            </span>
+          </span>
+          {/* Last-used quantity */}
+          <span className="ct-recent-qty">{qty}g</span>
+        </button>
+        <button
+          type="button"
+          className={'ct-relog-btn' + (done ? ' done' : '')}
+          onClick={(e) => quickRelog(e, entry)}
+          aria-disabled={done}
+          aria-label={(done ? 'Logged ' : 'Log ') + food.name + (done ? ', ' : ' again, ') + qty + 'g'}
+        >
+          <span className="ct-relog-ic" aria-hidden="true">{done ? '✓' : '+'}</span>
+        </button>
+      </div>
+    )
+  }
 
   const computeGrams = (): number | null => {
     const n = parseFloat(quantity)
@@ -239,7 +368,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               </button>
             </div>
 
-            <div className="ct-pick-scroll">
+            <div className="ct-pick-scroll" ref={scrollRef}>
               <button className="ct-create-row" onClick={() => setMode('create')}>
                 <span className="ct-create-ic">+</span>
                 <span>Create a new food{q.trim() ? ` "${q.trim()}"` : ''}</span>
@@ -249,38 +378,36 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               {!q.trim() && recentFoods.length > 0 && (
                 <>
                   <div className="ct-pick-label">Recent</div>
-                  {recentFoods.map((entry) => (
-                    <button
-                      className="ct-food"
-                      key={entry.food.id}
-                      onClick={() => openRecentConfirm(entry)}
-                    >
-                      <span className="ct-food-ident">{identOf(entry.food.name)}</span>
-                      <span className="ct-food-main">
-                        <span className="ct-food-name">{entry.food.name}</span>
-                        {entry.food.brand && (
-                          <span className="ct-food-macros">{entry.food.brand}</span>
-                        )}
-                        <span className="ct-food-macros">
-                          P{entry.food.proteinPer100g ?? '?'} · C{entry.food.carbsPer100g ?? '?'} · F{entry.food.fatPer100g ?? '?'}
-                        </span>
-                      </span>
-                      {/* Show last-used quantity as a pill on the right */}
-                      <span className="ct-recent-qty">{fmt1(entry.quantityGrams)}g</span>
+                  {recentFoods.map(renderRecentRow)}
+                  <div ref={sentinelRef} className="ct-pick-sentinel" aria-hidden="true" />
+                  {isFetchingNextPage && <div className="ct-pick-status">LOADING…</div>}
+                  {isFetchNextPageError && !isFetchingNextPage && (
+                    <button type="button" className="ct-pick-status ct-pick-retry" onClick={() => fetchNextPage()}>
+                      COULDN'T LOAD MORE · RETRY
                     </button>
-                  ))}
+                  )}
+                  {!hasNextPage && recentPageCount > 1 && (
+                    <div className="ct-pick-status">END OF HISTORY</div>
+                  )}
                 </>
               )}
 
               {/* Search results — split into the user's own foods and external matches */}
               {q.trim() && (
                 <>
+                  {historyMatches.length > 0 && (
+                    <>
+                      <div className="ct-pick-label">History</div>
+                      {historyMatches.map(renderRecentRow)}
+                    </>
+                  )}
+
                   {loading && <div className="ct-empty">Searching…</div>}
 
-                  {results.mine.length > 0 && (
+                  {mineResults.length > 0 && (
                     <>
                       <div className="ct-pick-label">My foods</div>
-                      {results.mine.map(renderFoodRow)}
+                      {mineResults.map(renderFoodRow)}
                     </>
                   )}
 
@@ -291,7 +418,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                     </>
                   )}
 
-                  {!loading && results.mine.length === 0 && results.external.length === 0 && (
+                  {!loading && historyMatches.length === 0 && mineResults.length === 0 && results.external.length === 0 && (
                     <div className="ct-empty">No matches — create it above.</div>
                   )}
                 </>
