@@ -1,11 +1,8 @@
-/** Today's date as YYYY-MM-DD — the format used in `/diary/:date` URLs. */
-export function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
-
 // ── Local-calendar helpers ────────────────────────────────────────────────────
-// `toISOString()` is UTC, so in the evening (US time) it already reports tomorrow.
-// These helpers work on the device's local calendar instead.
+// Calendar dates (diary days, `/diary/:date` URLs, metric ranges) are YYYY-MM-DD on
+// the device's local calendar. Never build them with `toISOString()`: that is UTC,
+// so in the evening (US time) it already reports tomorrow. For a "today" that has
+// to stay current while the app is left open, use the `useToday()` hook.
 
 /** A Date as YYYY-MM-DD on the device's local calendar. */
 export function toLocalDateStr(d: Date): string {

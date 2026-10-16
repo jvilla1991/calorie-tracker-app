@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { todayStr } from '../utils/date'
+import { useToday } from '../hooks/useToday'
 
 const ICON = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
@@ -33,13 +33,14 @@ function ProfileIcon() {
 /** Fixed bottom navigation shown on every signed-in page. */
 export default function TabBar() {
   const { pathname } = useLocation()
+  const today = useToday()
   const tabClass = (active: boolean) => 'ct-tab' + (active ? ' active' : '')
 
   return (
     <nav className="ct-tabbar" aria-label="Main">
       {/* Any diary date counts as the Diary tab, not only today's. */}
       <NavLink
-        to={`/diary/${todayStr()}`}
+        to={`/diary/${today}`}
         className={() => tabClass(pathname.startsWith('/diary/'))}
         aria-current={pathname.startsWith('/diary/') ? 'page' : undefined}
       >

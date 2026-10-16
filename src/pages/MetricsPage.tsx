@@ -5,7 +5,8 @@ import { getSummary } from '../api/metrics'
 import { deleteWeighIn, getWeighIns, logWeighIn } from '../api/weighIns'
 import { useSettings } from '../contexts/settings'
 import { useSheet } from '../hooks/useSheet'
-import { addDays, parseLocalDate, shortDate, todayLocal } from '../utils/date'
+import { addDays, parseLocalDate, shortDate } from '../utils/date'
+import { useToday } from '../hooks/useToday'
 import { formatWeight } from '../utils/weight'
 import { RANGE_DAYS, WEIGHT_SPANS, macroSplit, rangeStats } from '../utils/metrics'
 import type { CalorieRange, WeightSpan } from '../utils/metrics'
@@ -65,11 +66,18 @@ type Toast = { id: number; text: string }
 export default function MetricsPage() {
   const qc = useQueryClient()
   const { weightUnit } = useSettings()
-  const today = todayLocal()
+  const today = useToday()
 
   // ── Calorie range (week / month ending on `end`) ─────────────────────────────
   const [range, setRangeState] = useState<CalorieRange>(() => readPref(RANGE_KEY, ['week', 'month'] as const, 'week'))
   const [end, setEnd] = useState(today)
+  // When the day rolls over with the app open, a range that ended "today" keeps
+  // ending today (adjusting state during render — React's pattern for derived resets).
+  const [prevToday, setPrevToday] = useState(today)
+  if (prevToday !== today) {
+    setPrevToday(today)
+    if (end === prevToday) setEnd(today)
+  }
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const len = RANGE_DAYS[range]
   const from = addDays(end, -(len - 1))

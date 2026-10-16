@@ -8,6 +8,8 @@ import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import ReadoutStrip from '../components/ReadoutStrip'
 import FoodSearchModal from '../components/FoodSearchModal'
+import { useToday } from '../hooks/useToday'
+import { addDays, parseLocalDate } from '../utils/date'
 import type { Food, DailyGoal, MacroTotals, DiaryResponse } from '../types'
 
 const MEAL_LABELS: Record<string, string> = {
@@ -25,9 +27,6 @@ const DEFAULT_GOALS: DailyGoal = { calories: 2000, protein: 150, carbs: 200, fat
 const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
 
-function fmt(d: Date) { return d.toISOString().slice(0, 10) }
-function parseLocal(s: string) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
-function shiftDate(s: string, days: number) { const d = parseLocal(s); d.setDate(d.getDate() + days); return fmt(d) }
 /** How long the "Removed … UNDO" toast waits before the delete is actually sent. */
 const UNDO_MS = 5000
 
@@ -73,11 +72,11 @@ export default function DiaryPage() {
   const { date } = useParams<{ date: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const today = fmt(new Date())
+  const today = useToday()
   const currentDate = date ?? today
   const isToday = currentDate === today
 
-  const dateLabel = parseLocal(currentDate).toLocaleDateString('en-US', {
+  const dateLabel = parseLocalDate(currentDate).toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric',
   })
 
@@ -154,10 +153,10 @@ export default function DiaryPage() {
       // Swipe left → next day, never past today (same rule as the › button)
       if (currentDate >= today) return
       if (!prefersReducedMotion()) setSwipeAnim('next')
-      navigate(`/diary/${shiftDate(currentDate, 1)}`)
+      navigate(`/diary/${addDays(currentDate, 1)}`)
     } else {
       if (!prefersReducedMotion()) setSwipeAnim('prev')
-      navigate(`/diary/${shiftDate(currentDate, -1)}`)
+      navigate(`/diary/${addDays(currentDate, -1)}`)
     }
   }
 
@@ -301,13 +300,13 @@ export default function DiaryPage() {
           <div className="ct-date-nav">
             <button
               className="ct-date-btn"
-              onClick={() => navigate(`/diary/${shiftDate(currentDate, -1)}`)}
+              onClick={() => navigate(`/diary/${addDays(currentDate, -1)}`)}
               aria-label="Previous day"
             >‹</button>
             <span className="ct-date">{dateLabel}</span>
             <button
               className="ct-date-btn"
-              onClick={() => navigate(`/diary/${shiftDate(currentDate, 1)}`)}
+              onClick={() => navigate(`/diary/${addDays(currentDate, 1)}`)}
               disabled={currentDate >= today}
               aria-label="Next day"
             >›</button>
