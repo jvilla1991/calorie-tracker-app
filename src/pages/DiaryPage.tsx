@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getDiary, addMeal, addItem, deleteItem } from '../api/diary'
@@ -46,6 +46,25 @@ export default function DiaryPage() {
   // { mealId, mealType } while the sheet is open; null = closed
   const [activeSheet, setActiveSheet] = useState<{ mealId: number; mealType: string } | null>(null)
   const [pendingMealType, setPendingMealType] = useState<string | null>(null)
+  // Mirrors "is the food sheet open" for mutation callbacks, plus whether anything was
+  // logged while it was open. Recent foods are refreshed when the sheet closes rather
+  // than after every add, so a tapped row never jumps to the top under the user's finger.
+  const sheetOpenRef = useRef(false)
+  const recentStaleRef = useRef(false)
+
+  const openSheet = (sheet: { mealId: number; mealType: string }) => {
+    sheetOpenRef.current = true
+    setActiveSheet(sheet)
+  }
+
+  const closeSheet = () => {
+    sheetOpenRef.current = false
+    setActiveSheet(null)
+    if (recentStaleRef.current) {
+      recentStaleRef.current = false
+      qc.invalidateQueries({ queryKey: ['recent-foods'] })
+    }
+  }
 
   const { data: diary, isLoading } = useQuery({
     queryKey: ['diary', currentDate],
@@ -62,7 +81,7 @@ export default function DiaryPage() {
     onSuccess: (meal, { mealType }) => {
       qc.invalidateQueries({ queryKey: ['diary', currentDate] })
       setPendingMealType(null)
-      setActiveSheet({ mealId: meal.id, mealType })
+      openSheet({ mealId: meal.id, mealType })
     },
     onError: () => setPendingMealType(null),
   })
@@ -72,8 +91,10 @@ export default function DiaryPage() {
       addItem(mealId, foodId, grams),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['diary', currentDate] })
-      // The food just logged becomes the most recent — refresh the log sheet's history.
-      qc.invalidateQueries({ queryKey: ['recent-foods'] })
+      // The food just logged becomes the most recent. Defer the recent-foods refresh
+      // until the sheet closes; if it already closed (slow request), refresh now.
+      if (sheetOpenRef.current) recentStaleRef.current = true
+      else qc.invalidateQueries({ queryKey: ['recent-foods'] })
     },
   })
 
@@ -85,7 +106,7 @@ export default function DiaryPage() {
   const handleOpenAddFood = (mealType: string) => {
     const existing = diary?.meals.find((m) => m.mealType === mealType)
     if (existing) {
-      setActiveSheet({ mealId: existing.id, mealType })
+      openSheet({ mealId: existing.id, mealType })
     } else {
       setPendingMealType(mealType)
       addMealMut.mutate({ mealType })
@@ -201,7 +222,7 @@ export default function DiaryPage() {
         <FoodSearchModal
           mealLabel={MEAL_LABELS[activeSheet.mealType] ?? activeSheet.mealType}
           onAdd={handleAddFood}
-          onClose={() => setActiveSheet(null)}
+          onClose={closeSheet}
         />
       )}
     </>
