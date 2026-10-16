@@ -60,23 +60,10 @@ export interface DailyGoal {
   effectiveFrom?: string
 }
 
-export interface SavedMealItemResponse {
-  food: Food
-  quantityGrams: number
-  macros: MacroTotals
-}
-
 export interface RecentFood {
   food: Food
   /** Always in grams — the canonical storage unit. */
   quantityGrams: number
   /** ISO-8601 offset string of the most-recent log entry for this food. */
   addedAt: string
-}
-
-export interface SavedMeal {
-  id: number
-  name: string
-  items: SavedMealItemResponse[]
-  totals: MacroTotals
 }
