@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { TouchEvent } from 'react'
+import type { ChangeEvent, TouchEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
-import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow, updateMealDetails } from '../api/diary'
+import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow, updateMealDetails, deletePhoto } from '../api/diary'
 import { getGoals } from '../api/goals'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
@@ -14,12 +14,16 @@ import EatingWindowCard from '../components/EatingWindowCard'
 import EatingWindowSheet from '../components/EatingWindowSheet'
 import MealDetailsSheet from '../components/MealDetailsSheet'
 import MealNote from '../components/MealNote'
+import MealPhotos from '../components/MealPhotos'
+import PhotoViewer from '../components/PhotoViewer'
 import { toIsoWithOffset } from '../utils/eatingWindow'
 import { useToday } from '../hooks/useToday'
 import { useSheet } from '../hooks/useSheet'
 import { useAuth } from '../hooks/useAuth'
+import { usePhotoUploads } from '../hooks/usePhotoUploads'
 import { addDays, parseLocalDate } from '../utils/date'
-import type { Food, DailyGoal, MacroTotals, DiaryMeal, DiaryResponse } from '../types'
+import { MAX_PHOTOS } from '../utils/photos'
+import type { Food, DailyGoal, MacroTotals, DiaryMeal, DiaryResponse, MealPhoto } from '../types'
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Breakfast',
@@ -38,6 +42,8 @@ const identOf = (name: string) =>
 
 /** How long the "Removed … UNDO" toast waits before the delete is actually sent. */
 const UNDO_MS = 5000
+/** How long a message toast (e.g. a photo that failed to upload) stays up. */
+const INFO_MS = 4500
 
 const subTotals = (a: MacroTotals, b: MacroTotals): MacroTotals => ({
   calories: Math.max(0, a.calories - b.calories),
@@ -96,6 +102,26 @@ function withMealDetails(d: DiaryResponse, meal: DiaryMeal): DiaryResponse {
   }
 }
 
+/** The diary with a just-uploaded photo on its meal (until the refetch lands). */
+function withPhoto(d: DiaryResponse, mealId: number, photo: MealPhoto): DiaryResponse {
+  return {
+    ...d,
+    meals: d.meals.map((m) =>
+      m.id === mealId && !m.photos.some((p) => p.id === photo.id) ? { ...m, photos: [...m.photos, photo] } : m
+    ),
+  }
+}
+
+/** The diary without one photo. */
+function withoutPhoto(d: DiaryResponse, photoId: number): DiaryResponse {
+  return {
+    ...d,
+    meals: d.meals.map((m) =>
+      m.photos.some((p) => p.id === photoId) ? { ...m, photos: m.photos.filter((p) => p.id !== photoId) } : m
+    ),
+  }
+}
+
 /** The diary with one exercise entry removed and the burned total reduced to match. */
 function withoutExercise(d: DiaryResponse, id: number): DiaryResponse {
   const entry = d.exercise.find((e) => e.id === id)
@@ -126,6 +152,13 @@ const PENCIL = (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M12 20h8" />
     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+  </svg>
+)
+
+const CAMERA = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.3l1.6-2.2h7.2L17.2 7h2.3A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z" />
+    <circle cx="12" cy="13" r="3.5" />
   </svg>
 )
 
@@ -401,6 +434,72 @@ export default function DiaryPage() {
     detailsSheet.show()
   }
 
+  // ── Message toast (no action) ───────────────────────────────────────────────
+  const [info, setInfo] = useState<{ id: number; text: string } | null>(null)
+  const infoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const showInfo = useCallback((text: string) => {
+    clearTimeout(infoTimer.current)
+    setInfo({ id: Date.now(), text })
+    infoTimer.current = setTimeout(() => setInfo(null), INFO_MS)
+  }, [])
+  useEffect(() => () => clearTimeout(infoTimer.current), [])
+
+  // ── Meal photos ─────────────────────────────────────────────────────────────
+  const onPhotoUploaded = useCallback((date: string, mealId: number, photo: MealPhoto) => {
+    qc.setQueryData<DiaryResponse>(['diary', date], (d) => (d ? withPhoto(d, mealId, photo) : d))
+    qc.invalidateQueries({ queryKey: ['diary', date] })
+  }, [qc])
+  const { uploads, enqueue } = usePhotoUploads({ ensureMealId, onUploaded: onPhotoUploaded, onFailed: showInfo })
+
+  // One hidden file input serves every meal; this remembers which meal opened it.
+  const fileRef = useRef<HTMLInputElement>(null)
+  const photoTarget = useRef<{ date: string; mealType: string } | null>(null)
+
+  /** How many more photos a meal can take, counting ones still uploading. */
+  const freeSlots = (date: string, mealType: string) => {
+    const saved = qc.getQueryData<DiaryResponse>(['diary', date])?.meals.find((m) => m.mealType === mealType)?.photos.length ?? 0
+    const pending = uploads.filter((u) => u.date === date && u.mealType === mealType).length
+    return Math.max(0, MAX_PHOTOS - saved - pending)
+  }
+
+  const pickPhotos = (mealType: string) => {
+    if (freeSlots(currentDate, mealType) === 0) {
+      showInfo(`${MEAL_LABELS[mealType] ?? mealType} already has ${MAX_PHOTOS} photos.`)
+      return
+    }
+    photoTarget.current = { date: currentDate, mealType }
+    fileRef.current?.click()
+  }
+
+  const onPhotosPicked = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    e.target.value = '' // so picking the same photo again still counts as a change
+    const target = photoTarget.current
+    photoTarget.current = null
+    if (!target || files.length === 0) return
+    const take = files.slice(0, freeSlots(target.date, target.mealType))
+    const skipped = files.length - take.length
+    if (take.length === 0) showInfo(`${MEAL_LABELS[target.mealType] ?? target.mealType} already has ${MAX_PHOTOS} photos.`)
+    else if (skipped > 0) showInfo(`Only ${take.length} more ${take.length === 1 ? 'fits' : 'fit'} (${MAX_PHOTOS} per meal) — skipped ${skipped}.`)
+    enqueue(target.date, target.mealType, take)
+  }
+
+  // Full-screen viewer for one meal's photos; signed in, a photo can be deleted from it.
+  const [viewer, setViewer] = useState<{ date: string; mealType: string; index: number } | null>(null)
+  const deletePhotoMut = useMutation({
+    // Already gone (deleted on another device) counts as deleted.
+    mutationFn: ({ photo }: { date: string; mealType: string; photo: MealPhoto }) =>
+      deletePhoto(photo.id).catch((err: unknown) => {
+        if (!(isAxiosError(err) && err.response?.status === 404)) throw err
+      }),
+    onSuccess: (_res, { date, mealType, photo }) => {
+      qc.setQueryData<DiaryResponse>(['diary', date], (d) => (d ? withoutPhoto(d, photo.id) : d))
+      qc.invalidateQueries({ queryKey: ['diary', date] })
+      const left = qc.getQueryData<DiaryResponse>(['diary', date])?.meals.find((m) => m.mealType === mealType)?.photos.length ?? 0
+      if (left === 0) setViewer(null)
+    },
+  })
+
   const handleAddFood = (food: Food, grams: number) => {
     if (!activeSheet) return
     addItemMut.mutate({ ...activeSheet, foodId: food.id, grams })
@@ -420,6 +519,9 @@ export default function DiaryPage() {
     (a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)
   )
   const detailsMeal = detailsFor ? sortedMeals.find((m) => m.mealType === detailsFor) : undefined
+  const viewerPhotos = viewer && viewer.date === currentDate
+    ? sortedMeals.find((m) => m.mealType === viewer.mealType)?.photos ?? []
+    : []
 
   return (
     <>
@@ -510,7 +612,13 @@ export default function DiaryPage() {
               const meal = sortedMeals.find((m) => m.mealType === mealType)
               const label = MEAL_LABELS[mealType] ?? mealType
               const mealKcal = meal ? Math.round(meal.totals.calories) : 0
-              const hasDetails = !!meal && (meal.note != null || meal.estimatedCalories != null)
+              const items = meal?.items ?? []
+              const note = meal?.note ?? null
+              const estimate = meal?.estimatedCalories ?? null
+              const photos = meal?.photos ?? []
+              // Photos still on their way up (the meal row may not exist yet).
+              const mealUploads = uploads.filter((u) => u.date === currentDate && u.mealType === mealType)
+              const hasDetails = note != null || estimate != null
 
               // "Eating out?" — opens the note + estimate sheet.
               const noteBtn = loggedIn && (
@@ -524,14 +632,27 @@ export default function DiaryPage() {
                 </button>
               )
 
+              // Photos: the phone offers its camera or photo library.
+              const photoBtn = loggedIn && (
+                <button
+                  type="button"
+                  className="ct-meal-tool"
+                  onClick={() => pickPhotos(mealType)}
+                  aria-label={`Add photos to ${label}`}
+                >
+                  <span className="ct-meal-tool-ic">{CAMERA}</span>
+                </button>
+              )
+
               // Nothing on the meal yet: one compact row instead of a title + full-width button.
-              if (!meal || (meal.items.length === 0 && !hasDetails)) {
+              if (items.length === 0 && !hasDetails && photos.length === 0 && mealUploads.length === 0) {
                 return (
                   <div key={mealType} className="ct-meal ct-card ct-meal-empty">
                     <span className="ct-meal-title">{label}</span>
                     {loggedIn ? (
                       <div className="ct-meal-empty-r">
                         {noteBtn}
+                        {photoBtn}
                         <button
                           type="button"
                           className="ct-log-btn"
@@ -555,14 +676,25 @@ export default function DiaryPage() {
                     <div className="ct-meal-head-r">
                       {mealKcal > 0 && <span className="ct-meal-kcal">{comma(mealKcal)} kcal</span>}
                       {noteBtn}
+                      {photoBtn}
                     </div>
                   </div>
 
-                  {meal.note && <MealNote key={meal.id} text={meal.note} />}
+                  {meal && note && <MealNote key={meal.id} text={note} />}
 
-                  {(meal.items.length > 0 || meal.estimatedCalories != null) && (
+                  {(photos.length > 0 || mealUploads.length > 0) && (
+                    <MealPhotos
+                      photos={photos}
+                      uploads={mealUploads}
+                      mealLabel={label}
+                      date={currentDate}
+                      onOpen={(index) => setViewer({ date: currentDate, mealType, index })}
+                    />
+                  )}
+
+                  {(items.length > 0 || estimate != null) && (
                     <div className="ct-meal-list">
-                      {meal.items.map((item) => (
+                      {items.map((item) => (
                         <div className="ct-item ct-item-mono" key={item.id}>
                           <span className="ct-item-ident">{identOf(item.food.name)}</span>
                           <span className="ct-item-name">{item.food.name}</span>
@@ -583,11 +715,11 @@ export default function DiaryPage() {
                         </div>
                       ))}
                       {/* The rough guess for what couldn't be logged: dashed ≈ chip, no macros. */}
-                      {meal.estimatedCalories != null && (
+                      {estimate != null && (
                         <div className="ct-item ct-item-mono ct-item-est">
                           <span className="ct-item-ident ct-est-ident" aria-hidden>≈</span>
                           <span className="ct-item-name ct-est-name">Estimate</span>
-                          <span className="ct-item-kcal">{comma(meal.estimatedCalories)}</span>
+                          <span className="ct-item-kcal">{comma(estimate)}</span>
                           {loggedIn && (
                             <button
                               className="ct-item-x ct-item-edit"
@@ -681,14 +813,19 @@ export default function DiaryPage() {
           position:fixed is relative to the viewport. */}
       <ReadoutStrip totals={totals} goal={effectiveGoals} exercise={exerciseKcal} visible={stripVisible} onClick={scrollToTop} />
 
-      {/* Undo toast — the live region is always mounted so screen readers announce it */}
+      {/* Toasts (undo, or a message such as a failed photo upload) — the live region is
+          always mounted so screen readers announce them */}
       <div className="ct-toast-region" aria-live="polite">
-        {pendingDelete && (
+        {pendingDelete ? (
           <div className="ct-toast" key={`${pendingDelete.kind}-${pendingDelete.id}`}>
             <span className="ct-toast-text">Removed {pendingDelete.name}</span>
             <button type="button" className="ct-toast-undo" onClick={undoDelete}>Undo</button>
           </div>
-        )}
+        ) : info ? (
+          <div className="ct-toast ct-toast-info" key={info.id}>
+            <span className="ct-toast-text">{info.text}</span>
+          </div>
+        ) : null}
       </div>
 
       {/* Food search sheet — rendered OUTSIDE ct-scroll so position:fixed works
@@ -714,6 +851,34 @@ export default function DiaryPage() {
           onSave={(s, e) => setWindowMut.mutate({ startedAt: toIsoWithOffset(s), endedAt: e ? toIsoWithOffset(e) : null })}
           onClear={() => clearWindowMut.mutate()}
           onClose={windowSheet.hide}
+        />
+      )}
+
+      {loggedIn && (
+        <input
+          ref={fileRef}
+          className="ct-file-input"
+          type="file"
+          accept="image/*"
+          multiple
+          tabIndex={-1}
+          aria-hidden
+          onChange={onPhotosPicked}
+        />
+      )}
+
+      {viewer && viewerPhotos.length > 0 && (
+        <PhotoViewer
+          key={`${viewer.date}|${viewer.mealType}|${viewer.index}`}
+          photos={viewerPhotos}
+          startIndex={viewer.index}
+          mealLabel={MEAL_LABELS[viewer.mealType] ?? viewer.mealType}
+          date={viewer.date}
+          canDelete={loggedIn}
+          deletingId={deletePhotoMut.isPending ? deletePhotoMut.variables?.photo.id ?? null : null}
+          failedId={deletePhotoMut.isError ? deletePhotoMut.variables?.photo.id ?? null : null}
+          onDelete={(photo) => deletePhotoMut.mutate({ date: viewer.date, mealType: viewer.mealType, photo })}
+          onClose={() => { setViewer(null); deletePhotoMut.reset() }}
         />
       )}
 
