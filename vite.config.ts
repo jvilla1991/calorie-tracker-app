@@ -28,7 +28,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https?:\/\/.*\/api\/.*/,
+            // Meal photos (/api/photos/*) are excluded: in prod they are cross-origin
+            // redirects to S3, which would be stored as opaque, never-expiring entries
+            // that count heavily against the browser's storage quota.
+            urlPattern: /^https?:\/\/[^/]+\/api\/(?!photos\/).*/,
             handler: 'NetworkFirst',
             options: { cacheName: 'api-cache', networkTimeoutSeconds: 10 },
           },
