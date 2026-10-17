@@ -100,9 +100,11 @@ export default function MetricsPage() {
     setSelectedDay(null)
   }
 
+  // One extra day before the range: the first day's fast starts at its eating-window end.
+  const before = addDays(from, -1)
   const summary = useQuery({
-    queryKey: ['summary', from, end],
-    queryFn: () => getSummary(from, end),
+    queryKey: ['summary', before, end],
+    queryFn: () => getSummary(before, end),
   })
 
   // ── Weight span ─────────────────────────────────────────────────────────────
@@ -201,7 +203,8 @@ export default function MetricsPage() {
   const dueSince = addDays(today, -(WEIGH_IN_EVERY - 1))
   const weighInDue = weighIns.isSuccess && !shownWeighIns.some((w) => w.date >= dueSince && w.date <= today)
 
-  const days = summary.data ?? []
+  const days = (summary.data ?? []).filter((d) => d.date >= from)
+  const prevDay = summary.data?.find((d) => d.date === before) ?? null
   const stats = rangeStats(days)
   const split = macroSplit(days)
 
@@ -260,7 +263,7 @@ export default function MetricsPage() {
           ) : (
             <>
               <StatTiles stats={stats} />
-              <CalorieBars days={days} today={today} selected={selectedDay} onSelect={setSelectedDay} />
+              <CalorieBars days={days} prevDay={prevDay} today={today} selected={selectedDay} onSelect={setSelectedDay} />
               <MacroDonut split={split} />
               <FastingSection key={`${from}-${end}`} days={days} today={today} />
             </>

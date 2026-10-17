@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow } from '../api/diary'
 import { getGoals } from '../api/goals'
-import { getSummary } from '../api/metrics'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import ReadoutStrip from '../components/ReadoutStrip'
@@ -116,22 +115,28 @@ export default function DiaryPage() {
     weekday: 'long', month: 'long', day: 'numeric',
   })
 
-  // { mealId, mealType } while the sheet is open; null = closed
-  const [activeSheet, setActiveSheet] = useState<{ mealId: number; mealType: string } | null>(null)
-  const [pendingMealType, setPendingMealType] = useState<string | null>(null)
+  // { mealType, date } while the sheet is open; null = closed
+  const [activeSheet, setActiveSheet] = useState<{ mealType: string; date: string } | null>(null)
   // Mirrors "is the food sheet open" for mutation callbacks, plus whether anything was
   // logged while it was open. Recent foods are refreshed when the sheet closes rather
   // than after every add, so a tapped row never jumps to the top under the user's finger.
   const sheetOpenRef = useRef(false)
   const recentStaleRef = useRef(false)
 
-  const openSheet = (sheet: { mealId: number; mealType: string }) => {
+  // The meal the open sheet logs into. Opening never waits on the server: the meal
+  // is looked up (or created) on the first add, and later adds reuse that same
+  // promise so a missing meal is only ever created once.
+  const sheetMealRef = useRef<Promise<number> | null>(null)
+
+  const openSheet = (sheet: { mealType: string; date: string }) => {
     sheetOpenRef.current = true
+    sheetMealRef.current = null
     setActiveSheet(sheet)
   }
 
   const closeSheet = () => {
     sheetOpenRef.current = false
+    sheetMealRef.current = null
     setActiveSheet(null)
     if (recentStaleRef.current) {
       recentStaleRef.current = false
@@ -206,21 +211,22 @@ export default function DiaryPage() {
     queryFn: getGoals,
   })
 
-  const addMealMut = useMutation({
-    mutationFn: ({ mealType }: { mealType: string }) => addMeal(currentDate, mealType),
-    onSuccess: (meal, { mealType }) => {
-      qc.invalidateQueries({ queryKey: ['diary', currentDate] })
-      setPendingMealType(null)
-      openSheet({ mealId: meal.id, mealType })
-    },
-    onError: () => setPendingMealType(null),
-  })
+  const mealIdFor = (date: string, mealType: string): Promise<number> => {
+    if (!sheetMealRef.current) {
+      const existing = qc.getQueryData<DiaryResponse>(['diary', date])?.meals.find((m) => m.mealType === mealType)
+      const p = existing ? Promise.resolve(existing.id) : addMeal(date, mealType).then((m) => m.id)
+      // A failed create is forgotten so the next add tries again.
+      p.catch(() => { if (sheetMealRef.current === p) sheetMealRef.current = null })
+      sheetMealRef.current = p
+    }
+    return sheetMealRef.current
+  }
 
   const addItemMut = useMutation({
-    mutationFn: ({ mealId, foodId, grams }: { mealId: number; foodId: number; grams: number }) =>
-      addItem(mealId, foodId, grams),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['diary', currentDate] })
+    mutationFn: async ({ date, mealType, foodId, grams }: { date: string; mealType: string; foodId: number; grams: number }) =>
+      addItem(await mealIdFor(date, mealType), foodId, grams),
+    onSuccess: (_item, { date }) => {
+      qc.invalidateQueries({ queryKey: ['diary', date] })
       // The food just logged becomes the most recent. Defer the recent-foods refresh
       // until the sheet closes; if it already closed (slow request), refresh now.
       if (sheetOpenRef.current) recentStaleRef.current = true
@@ -242,14 +248,6 @@ export default function DiaryPage() {
   const openExerciseSheet = () => { addExerciseMut.reset(); exerciseSheet.show() }
 
   // ── Eating window ───────────────────────────────────────────────────────────
-  // The previous day's end gives the FASTED readout; one summary call covers both days.
-  const yesterday = addDays(currentDate, -1)
-  const { data: twoDays } = useQuery({
-    queryKey: ['summary', yesterday, currentDate],
-    queryFn: () => getSummary(yesterday, currentDate),
-  })
-  const prevEndedAt = twoDays?.find((d) => d.date === yesterday)?.eatingEndedAt ?? null
-
   const windowSheet = useSheet()
   const onWindowChanged = (eatingWindow: DiaryResponse['eatingWindow']) => {
     qc.setQueryData<DiaryResponse>(['diary', currentDate], (d) => (d ? { ...d, eatingWindow } : d))
@@ -324,19 +322,11 @@ export default function DiaryPage() {
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [commitDelete])
 
-  const handleOpenAddFood = (mealType: string) => {
-    const existing = diary?.meals.find((m) => m.mealType === mealType)
-    if (existing) {
-      openSheet({ mealId: existing.id, mealType })
-    } else {
-      setPendingMealType(mealType)
-      addMealMut.mutate({ mealType })
-    }
-  }
+  const handleOpenAddFood = (mealType: string) => openSheet({ mealType, date: currentDate })
 
   const handleAddFood = (food: Food, grams: number) => {
     if (!activeSheet) return
-    addItemMut.mutate({ mealId: activeSheet.mealId, foodId: food.id, grams })
+    addItemMut.mutate({ ...activeSheet, foodId: food.id, grams })
   }
 
   // What the page shows: the server diary minus an item waiting in the undo window.
@@ -427,7 +417,6 @@ export default function DiaryPage() {
               date={currentDate}
               isToday={isToday}
               window={shownDiary?.eatingWindow ?? null}
-              prevEndedAt={prevEndedAt}
               canEdit={loggedIn}
               busy={setWindowMut.isPending}
               error={!windowSheet.visible && setWindowMut.isError ? errorText(setWindowMut.error) : null}
@@ -442,7 +431,6 @@ export default function DiaryPage() {
             {MEAL_ORDER.map((mealType) => {
               const meal = sortedMeals.find((m) => m.mealType === mealType)
               const label = MEAL_LABELS[mealType] ?? mealType
-              const isCreating = pendingMealType === mealType
               const mealKcal = meal ? Math.round(meal.totals.calories) : 0
 
               // Nothing logged yet: one compact row instead of a title + full-width button.
@@ -455,10 +443,9 @@ export default function DiaryPage() {
                         type="button"
                         className="ct-log-btn"
                         onClick={() => handleOpenAddFood(mealType)}
-                        disabled={isCreating}
                         aria-label={`Log item to ${label}`}
                       >
-                        <span className="ct-log-chip">{isCreating ? 'Opening…' : '+ Log'}</span>
+                        <span className="ct-log-chip">+ Log</span>
                       </button>
                     ) : (
                       <span className="ct-meal-none" aria-label="Nothing logged">—</span>
@@ -503,10 +490,9 @@ export default function DiaryPage() {
                     <button
                       className="ct-add-btn"
                       onClick={() => handleOpenAddFood(mealType)}
-                      disabled={isCreating}
                     >
                       <span className="ct-add-plus">+</span>
-                      {isCreating ? 'Opening…' : 'Log item'}
+                      Log item
                     </button>
                   )}
                 </div>
