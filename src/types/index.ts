@@ -36,12 +36,26 @@ export interface DiaryItem {
   macros: MacroTotals
 }
 
+/** A photo on a meal. The URLs are API paths (`/api/photos/12/thumb`) — load them via `apiUrl`. */
+export interface MealPhoto {
+  id: number
+  thumbUrl: string
+  fullUrl: string
+}
+
 export interface DiaryMeal {
   id: number
   mealType: string
   displayOrder: number
   items: DiaryItem[]
+  /** Already includes `estimatedCalories` in `calories` (the estimate has no macros). */
   totals: MacroTotals
+  /** Free-text note, e.g. what was eaten out (≤500 chars); null when none. */
+  note: string | null
+  /** Rough kcal for food that couldn't be logged (whole number 1–10,000); null when none. */
+  estimatedCalories: number | null
+  /** Up to 6, oldest first; public like the rest of the diary. */
+  photos: MealPhoto[]
 }
 
 /** Calories burned by one logged activity. They add back to that day's budget. */

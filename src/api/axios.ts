@@ -9,6 +9,16 @@ const api = axios.create({
     : '/api',
 })
 
+/**
+ * A path the API hands out (e.g. `/api/photos/12/thumb`) as a URL the browser can load
+ * directly, e.g. in `<img src>`: same host as the requests above (proxied in dev).
+ */
+export function apiUrl(path: string): string {
+  if (/^(https?:|blob:|data:)/i.test(path)) return path
+  const base = String(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
+  return base + path
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('ct_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
