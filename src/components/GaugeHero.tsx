@@ -51,19 +51,26 @@ const comma = (n: number) => Math.round(n).toLocaleString('en-US')
 interface Props {
   totals: MacroTotals
   goal: DailyGoal
+  /** Calories burned today. They add back 1:1, so the day's budget is goal + exercise. */
+  exercise?: number
   /** When set, the "2,200 goal" caption becomes a button (e.g. to edit goals). */
   onGoalClick?: () => void
 }
 
-export default function GaugeHero({ totals, goal, onGoalClick }: Props) {
+export default function GaugeHero({ totals, goal, exercise = 0, onGoalClick }: Props) {
   const eaten = totals.calories
   const goalK = goal.calories
-  const remaining = goalK - eaten
-  const over = eaten > goalK
+  const burned = Math.max(0, exercise)
+  const budget = goalK + burned
+  const remaining = budget - eaten
+  const over = eaten > budget
 
-  const gMax = Math.max(goalK * 1.2, eaten * 1.04, 1)
+  const gMax = Math.max(budget * 1.2, eaten * 1.04, 1)
   const eatenF = eaten / gMax
-  const goalF = goalK / gMax
+  // The goal marker and redline sit at the effective budget; the stretch of track the
+  // exercise added (base goal → budget) is tinted blue.
+  const goalF = budget / gMax
+  const baseF = goalK / gMax
 
   const W = 250, cx = 125, cy = 132, R = 96, RT = 78
   const needleA = angOf(eatenF)
@@ -111,6 +118,14 @@ export default function GaugeHero({ totals, goal, onGoalClick }: Props) {
             d={arcPath(cx, cy, R, angOf(goalF), G_START + G_SWEEP)}
             fill="none" stroke="var(--redline)" strokeWidth="11" strokeLinecap="butt" opacity="0.85"
           />
+          {/* exercise allowance: base goal → budget */}
+          {burned > 0 && (
+            <path
+              className="ct-gauge-ex"
+              d={arcPath(cx, cy, R, angOf(baseF), angOf(goalF))}
+              fill="none" stroke="var(--c)" strokeWidth="11" strokeLinecap="butt" opacity="0.5"
+            />
+          )}
           {/* progress arc */}
           <path
             className="ct-gauge-prog"
@@ -198,6 +213,9 @@ export default function GaugeHero({ totals, goal, onGoalClick }: Props) {
               <>{comma(goalK)} goal</>
             )}
           </div>
+          {burned > 0 && (
+            <div className="ct-lcd-cap ct-lcd-ex">+{comma(burned)} burned</div>
+          )}
         </div>
       </div>
     </div>

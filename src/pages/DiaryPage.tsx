@@ -2,13 +2,16 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import type { TouchEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getDiary, addMeal, addItem, deleteItem } from '../api/diary'
+import { isAxiosError } from 'axios'
+import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise } from '../api/diary'
 import { getGoals } from '../api/goals'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import ReadoutStrip from '../components/ReadoutStrip'
 import FoodSearchModal from '../components/FoodSearchModal'
+import ExerciseSheet from '../components/ExerciseSheet'
 import { useToday } from '../hooks/useToday'
+import { useSheet } from '../hooks/useSheet'
 import { addDays, parseLocalDate } from '../utils/date'
 import type { Food, DailyGoal, MacroTotals, DiaryResponse } from '../types'
 
@@ -38,6 +41,16 @@ const subTotals = (a: MacroTotals, b: MacroTotals): MacroTotals => ({
   fiber: Math.max(0, a.fiber - b.fiber),
 })
 
+const comma = (n: number) => Math.round(n).toLocaleString('en-US')
+
+function errorText(err: unknown): string {
+  if (isAxiosError(err)) {
+    const msg = (err.response?.data as { message?: unknown } | undefined)?.message
+    if (typeof msg === 'string' && msg) return msg
+  }
+  return 'Couldn’t save — please try again.'
+}
+
 /** The diary with one item removed and the meal + day totals reduced to match. */
 function withoutItem(d: DiaryResponse, itemId: number): DiaryResponse {
   const item = d.meals.flatMap((m) => m.items).find((i) => i.id === itemId)
@@ -53,12 +66,28 @@ function withoutItem(d: DiaryResponse, itemId: number): DiaryResponse {
   }
 }
 
+/** The diary with one exercise entry removed and the burned total reduced to match. */
+function withoutExercise(d: DiaryResponse, id: number): DiaryResponse {
+  const entry = d.exercise.find((e) => e.id === id)
+  if (!entry) return d
+  return {
+    ...d,
+    exercise: d.exercise.filter((e) => e.id !== id),
+    exerciseCalories: Math.max(0, d.exerciseCalories - entry.calories),
+  }
+}
+
+/** The diary as it looks with a pending (not yet sent) delete applied. */
+const withoutPending = (d: DiaryResponse, p: PendingDelete) =>
+  p.kind === 'food' ? withoutItem(d, p.id) : withoutExercise(d, p.id)
+
 // Swipe-to-change-day thresholds
 const SWIPE_MIN_DX = 60     // px of horizontal travel before it counts
 const SWIPE_RATIO = 1.5     // horizontal travel must dominate vertical by this much
 const SWIPE_EDGE = 20       // ignore touches starting this close to a screen edge (iOS back gesture)
 
-type PendingDelete = { itemId: number; name: string; date: string }
+/** A food item or an exercise entry waiting out the undo window. */
+type PendingDelete = { kind: 'food' | 'exercise'; id: number; name: string; date: string }
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -192,10 +221,24 @@ export default function DiaryPage() {
     },
   })
 
+  // ── Exercise ────────────────────────────────────────────────────────────────
+  const exerciseSheet = useSheet()
+  const addExerciseMut = useMutation({
+    mutationFn: ({ name, calories }: { name: string; calories: number }) => addExercise(currentDate, name, calories),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['diary', currentDate] })
+      // Metrics' budget line includes exercise.
+      qc.invalidateQueries({ queryKey: ['summary'] })
+      exerciseSheet.hide()
+    },
+  })
+  const openExerciseSheet = () => { addExerciseMut.reset(); exerciseSheet.show() }
+
   // ── Delete with undo ────────────────────────────────────────────────────────
   // Tapping ✕ only *hides* the item (and takes it out of the totals) and shows an
   // undo toast. The real DELETE is sent when the toast times out, when another item
   // is deleted, or when the user changes day / leaves the page / backgrounds the app.
+  // Food items and exercise entries share the one pending slot.
   // The ref is the source of truth (timers and cleanups read it); state drives render.
   const pendingRef = useRef<PendingDelete | null>(null)
   const undoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -211,15 +254,19 @@ export default function DiaryPage() {
     // Remove it from the cache right away so the row doesn't flash back while the
     // request is in flight; cancel any refetch that could still return the old list.
     qc.cancelQueries({ queryKey: key })
-    qc.setQueryData<DiaryResponse>(key, (d) => (d ? withoutItem(d, p.itemId) : d))
-    deleteItem(p.itemId)
+    qc.setQueryData<DiaryResponse>(key, (d) => (d ? withoutPending(d, p) : d))
+    const req = p.kind === 'food' ? deleteItem(p.id) : deleteExercise(p.id)
+    req
       .catch(() => { /* the refetch below brings the item back if the delete failed */ })
-      .finally(() => qc.invalidateQueries({ queryKey: key }))
+      .finally(() => {
+        qc.invalidateQueries({ queryKey: key })
+        if (p.kind === 'exercise') qc.invalidateQueries({ queryKey: ['summary'] })
+      })
   }, [qc])
 
-  const handleDelete = (itemId: number, name: string) => {
+  const handleDelete = (kind: PendingDelete['kind'], id: number, name: string) => {
     commitDelete() // only one pending delete at a time — send the previous one now
-    pendingRef.current = { itemId, name, date: currentDate }
+    pendingRef.current = { kind, id, name, date: currentDate }
     setPendingDelete(pendingRef.current)
     undoTimer.current = setTimeout(commitDelete, UNDO_MS)
   }
@@ -256,11 +303,13 @@ export default function DiaryPage() {
 
   // What the page shows: the server diary minus an item waiting in the undo window.
   const shownDiary = diary && pendingDelete && pendingDelete.date === currentDate
-    ? withoutItem(diary, pendingDelete.itemId)
+    ? withoutPending(diary, pendingDelete)
     : diary
 
   const totals = shownDiary?.totals ?? EMPTY_TOTALS
   const effectiveGoals = goals ?? DEFAULT_GOALS
+  const exercise = shownDiary?.exercise ?? []
+  const exerciseKcal = shownDiary?.exerciseCalories ?? 0
 
   const sortedMeals = [...(shownDiary?.meals ?? [])].sort(
     (a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)
@@ -325,7 +374,7 @@ export default function DiaryPage() {
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
               </div>
             ) : (
-              <GaugeHero totals={totals} goal={effectiveGoals} onGoalClick={() => navigate('/profile#goals')} />
+              <GaugeHero totals={totals} goal={effectiveGoals} exercise={exerciseKcal} onGoalClick={() => navigate('/profile#goals')} />
             )}
           </div>
 
@@ -374,7 +423,7 @@ export default function DiaryPage() {
                           <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
                           <button
                             className="ct-item-x"
-                            onClick={() => handleDelete(item.id, item.food.name)}
+                            onClick={() => handleDelete('food', item.id, item.food.name)}
                             aria-label={`Remove ${item.food.name}`}
                           >
                             <span className="ct-item-x-ic">
@@ -399,6 +448,54 @@ export default function DiaryPage() {
                 </div>
               )
             })}
+
+            {/* Exercise: same card language as a meal, in the cool "burned" blue. */}
+            {exercise.length === 0 ? (
+              <div className="ct-meal ct-card ct-meal-empty ct-exercise">
+                <span className="ct-meal-title">Exercise</span>
+                <button
+                  type="button"
+                  className="ct-log-btn"
+                  onClick={openExerciseSheet}
+                  aria-label="Log exercise"
+                >
+                  <span className="ct-log-chip">+ Log</span>
+                </button>
+              </div>
+            ) : (
+              <div className="ct-meal ct-card ct-exercise">
+                <div className="ct-meal-head">
+                  <span className="ct-meal-title">Exercise</span>
+                  <span className="ct-meal-kcal ct-ex-total" aria-label={`${comma(exerciseKcal)} kcal burned`}>
+                    −{comma(exerciseKcal)} kcal
+                  </span>
+                </div>
+                <div className="ct-meal-list">
+                  {exercise.map((e) => (
+                    <div className="ct-item ct-item-mono" key={e.id}>
+                      <span className="ct-item-ident">{identOf(e.name)}</span>
+                      <span className="ct-item-name">{e.name}</span>
+                      <span className="ct-item-kcal">−{comma(e.calories)}</span>
+                      <button
+                        className="ct-item-x"
+                        onClick={() => handleDelete('exercise', e.id, e.name)}
+                        aria-label={`Remove ${e.name}`}
+                      >
+                        <span className="ct-item-x-ic">
+                          <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
+                            <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button className="ct-add-btn" onClick={openExerciseSheet}>
+                  <span className="ct-add-plus">+</span>
+                  Log exercise
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
@@ -408,12 +505,12 @@ export default function DiaryPage() {
 
       {/* Pinned readout while the gauge is scrolled away — outside ct-scroll so
           position:fixed is relative to the viewport. */}
-      <ReadoutStrip totals={totals} goal={effectiveGoals} visible={stripVisible} onClick={scrollToTop} />
+      <ReadoutStrip totals={totals} goal={effectiveGoals} exercise={exerciseKcal} visible={stripVisible} onClick={scrollToTop} />
 
       {/* Undo toast — the live region is always mounted so screen readers announce it */}
       <div className="ct-toast-region" aria-live="polite">
         {pendingDelete && (
-          <div className="ct-toast" key={pendingDelete.itemId}>
+          <div className="ct-toast" key={`${pendingDelete.kind}-${pendingDelete.id}`}>
             <span className="ct-toast-text">Removed {pendingDelete.name}</span>
             <button type="button" className="ct-toast-undo" onClick={undoDelete}>Undo</button>
           </div>
@@ -427,6 +524,16 @@ export default function DiaryPage() {
           mealLabel={MEAL_LABELS[activeSheet.mealType] ?? activeSheet.mealType}
           onAdd={handleAddFood}
           onClose={closeSheet}
+        />
+      )}
+
+      {exerciseSheet.visible && (
+        <ExerciseSheet
+          open={exerciseSheet.open}
+          saving={addExerciseMut.isPending}
+          serverError={addExerciseMut.isError ? errorText(addExerciseMut.error) : null}
+          onSubmit={(name, calories) => addExerciseMut.mutate({ name, calories })}
+          onClose={exerciseSheet.hide}
         />
       )}
     </>
