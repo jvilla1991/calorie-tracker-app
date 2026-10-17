@@ -14,6 +14,7 @@ import type { WeighIn } from '../types'
 import StatTiles from '../components/metrics/StatTiles'
 import CalorieBars from '../components/metrics/CalorieBars'
 import MacroDonut from '../components/metrics/MacroDonut'
+import FastingSection from '../components/metrics/FastingSection'
 import WeightSection from '../components/metrics/WeightSection'
 import WeighInCard from '../components/metrics/WeighInCard'
 import WeighInSheet from '../components/metrics/WeighInSheet'
@@ -256,6 +257,7 @@ export default function MetricsPage() {
               <StatTiles stats={stats} />
               <CalorieBars days={days} today={today} selected={selectedDay} onSelect={setSelectedDay} />
               <MacroDonut split={split} />
+              <FastingSection key={`${from}-${end}`} days={days} today={today} />
             </>
           )}
 

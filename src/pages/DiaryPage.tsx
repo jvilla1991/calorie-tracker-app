@@ -3,13 +3,17 @@ import type { TouchEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
-import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise } from '../api/diary'
+import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow } from '../api/diary'
 import { getGoals } from '../api/goals'
+import { getSummary } from '../api/metrics'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
 import ReadoutStrip from '../components/ReadoutStrip'
 import FoodSearchModal from '../components/FoodSearchModal'
 import ExerciseSheet from '../components/ExerciseSheet'
+import EatingWindowCard from '../components/EatingWindowCard'
+import EatingWindowSheet from '../components/EatingWindowSheet'
+import { toIsoWithOffset } from '../utils/eatingWindow'
 import { useToday } from '../hooks/useToday'
 import { useSheet } from '../hooks/useSheet'
 import { addDays, parseLocalDate } from '../utils/date'
@@ -234,6 +238,37 @@ export default function DiaryPage() {
   })
   const openExerciseSheet = () => { addExerciseMut.reset(); exerciseSheet.show() }
 
+  // ── Eating window ───────────────────────────────────────────────────────────
+  // The previous day's end gives the FASTED readout; one summary call covers both days.
+  const yesterday = addDays(currentDate, -1)
+  const { data: twoDays } = useQuery({
+    queryKey: ['summary', yesterday, currentDate],
+    queryFn: () => getSummary(yesterday, currentDate),
+  })
+  const prevEndedAt = twoDays?.find((d) => d.date === yesterday)?.eatingEndedAt ?? null
+
+  const windowSheet = useSheet()
+  const onWindowChanged = (eatingWindow: DiaryResponse['eatingWindow']) => {
+    qc.setQueryData<DiaryResponse>(['diary', currentDate], (d) => (d ? { ...d, eatingWindow } : d))
+    qc.invalidateQueries({ queryKey: ['diary', currentDate] })
+    qc.invalidateQueries({ queryKey: ['summary'] })
+  }
+  const setWindowMut = useMutation({
+    mutationFn: ({ startedAt, endedAt }: { startedAt: string; endedAt: string | null }) =>
+      setEatingWindow(currentDate, startedAt, endedAt),
+    onSuccess: (w) => { onWindowChanged(w); if (windowSheet.visible) windowSheet.hide() },
+  })
+  const clearWindowMut = useMutation({
+    mutationFn: () => clearEatingWindow(currentDate),
+    onSuccess: () => { onWindowChanged(null); windowSheet.hide() },
+  })
+  const openWindowSheet = () => { setWindowMut.reset(); clearWindowMut.reset(); windowSheet.show() }
+  const startEating = () => setWindowMut.mutate({ startedAt: toIsoWithOffset(new Date()), endedAt: null })
+  const stopEating = () => {
+    const w = diary?.eatingWindow
+    if (w) setWindowMut.mutate({ startedAt: w.startedAt, endedAt: toIsoWithOffset(new Date()) })
+  }
+
   // ── Delete with undo ────────────────────────────────────────────────────────
   // Tapping ✕ only *hides* the item (and takes it out of the totals) and shows an
   // undo toast. The real DELETE is sent when the toast times out, when another item
@@ -381,6 +416,21 @@ export default function DiaryPage() {
           {/* Macro dials */}
           <MacroDials totals={totals} goal={effectiveGoals} />
 
+          {/* Eating window — a day-level log, so it sits with the dials, above the meals */}
+          {!isLoading && (
+            <EatingWindowCard
+              date={currentDate}
+              isToday={isToday}
+              window={shownDiary?.eatingWindow ?? null}
+              prevEndedAt={prevEndedAt}
+              busy={setWindowMut.isPending}
+              error={!windowSheet.visible && setWindowMut.isError ? errorText(setWindowMut.error) : null}
+              onStart={startEating}
+              onStop={stopEating}
+              onEdit={openWindowSheet}
+            />
+          )}
+
           {/* Meal cards */}
           <div className="ct-meals">
             {MEAL_ORDER.map((mealType) => {
@@ -524,6 +574,22 @@ export default function DiaryPage() {
           mealLabel={MEAL_LABELS[activeSheet.mealType] ?? activeSheet.mealType}
           onAdd={handleAddFood}
           onClose={closeSheet}
+        />
+      )}
+
+      {windowSheet.visible && (
+        <EatingWindowSheet
+          open={windowSheet.open}
+          date={currentDate}
+          window={shownDiary?.eatingWindow ?? null}
+          saving={setWindowMut.isPending || clearWindowMut.isPending}
+          serverError={
+            setWindowMut.isError ? errorText(setWindowMut.error)
+              : clearWindowMut.isError ? errorText(clearWindowMut.error) : null
+          }
+          onSave={(s, e) => setWindowMut.mutate({ startedAt: toIsoWithOffset(s), endedAt: e ? toIsoWithOffset(e) : null })}
+          onClear={() => clearWindowMut.mutate()}
+          onClose={windowSheet.hide}
         />
       )}
 

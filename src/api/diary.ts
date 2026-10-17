@@ -1,5 +1,5 @@
 import api from './axios'
-import type { DiaryResponse, DiaryMeal, DiaryItem, ExerciseEntry } from '../types'
+import type { DiaryResponse, DiaryMeal, DiaryItem, ExerciseEntry, EatingWindow } from '../types'
 
 export const getDiary = (date: string) =>
   api.get<DiaryResponse>(`/diary/${date}`).then((r): DiaryResponse => {
@@ -9,6 +9,7 @@ export const getDiary = (date: string) =>
       ...r.data,
       exercise,
       exerciseCalories: Number(r.data.exerciseCalories ?? exercise.reduce((s, e) => s + e.calories, 0)) || 0,
+      eatingWindow: r.data.eatingWindow ?? null,
     }
   })
 
@@ -18,6 +19,16 @@ export const addExercise = (date: string, name: string, calories: number) =>
 
 export const deleteExercise = (id: number) =>
   api.delete(`/diary/exercise/${id}`)
+
+/**
+ * Sets the day's eating window. Send instants with an offset (see toIsoWithOffset);
+ * endedAt null keeps the window open. To remove it, use clearEatingWindow.
+ */
+export const setEatingWindow = (date: string, startedAt: string, endedAt: string | null) =>
+  api.put<EatingWindow>(`/diary/${date}/eating-window`, { startedAt, endedAt }).then((r) => r.data)
+
+export const clearEatingWindow = (date: string) =>
+  api.delete(`/diary/${date}/eating-window`)
 
 export const addMeal = (date: string, mealType: string) =>
   api.post<DiaryMeal>(`/diary/${date}/meals`, { mealType }).then((r) => r.data)

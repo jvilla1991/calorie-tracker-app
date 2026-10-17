@@ -51,6 +51,12 @@ export interface ExerciseEntry {
   calories: number
 }
 
+/** The day's eating window: ISO-8601 instants. endedAt is null while still eating. */
+export interface EatingWindow {
+  startedAt: string
+  endedAt: string | null
+}
+
 export interface DiaryResponse {
   date: string
   meals: DiaryMeal[]
@@ -59,6 +65,8 @@ export interface DiaryResponse {
   exercise: ExerciseEntry[]
   /** Sum of `exercise` calories — added to the goal to give the day's budget. */
   exerciseCalories: number
+  /** When eating started / stopped that day; null when nothing was logged. */
+  eatingWindow: EatingWindow | null
 }
 
 export interface DailyGoal {
@@ -91,6 +99,9 @@ export interface DaySummary {
   goalCalories: number
   /** Calories burned that day; the day's budget is goalCalories + exerciseCalories. */
   exerciseCalories: number
+  /** The day's eating window (ISO-8601 instants), when one was logged. */
+  eatingStartedAt: string | null
+  eatingEndedAt: string | null
 }
 
 export interface WeighIn {
