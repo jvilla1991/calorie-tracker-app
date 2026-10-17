@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { getSummary } from '../api/metrics'
 import { deleteWeighIn, getWeighIns, logWeighIn } from '../api/weighIns'
@@ -7,6 +8,7 @@ import { useSettings } from '../contexts/settings'
 import { useSheet } from '../hooks/useSheet'
 import { addDays, parseLocalDate, shortDate } from '../utils/date'
 import { useToday } from '../hooks/useToday'
+import { useAuth } from '../hooks/useAuth'
 import { formatWeight } from '../utils/weight'
 import { RANGE_DAYS, WEIGHT_SPANS, macroSplit, rangeStats } from '../utils/metrics'
 import type { CalorieRange, WeightSpan } from '../utils/metrics'
@@ -68,6 +70,8 @@ export default function MetricsPage() {
   const qc = useQueryClient()
   const { weightUnit } = useSettings()
   const today = useToday()
+  // Signed out: calories and fasting are public, weight is not (and its API needs a token).
+  const { loggedIn } = useAuth()
 
   // ── Calorie range (week / month ending on `end`) ─────────────────────────────
   const [range, setRangeState] = useState<CalorieRange>(() => readPref(RANGE_KEY, ['week', 'month'] as const, 'week'))
@@ -110,6 +114,7 @@ export default function MetricsPage() {
   const weighIns = useQuery({
     queryKey: ['weigh-ins', wFrom, today],
     queryFn: () => getWeighIns(wFrom, today),
+    enabled: loggedIn,
   })
 
   // ── Toasts ──────────────────────────────────────────────────────────────────
@@ -208,7 +213,7 @@ export default function MetricsPage() {
         </div>
 
         <div className="ct-sections">
-          {weighInDue && (
+          {loggedIn && weighInDue && (
             <WeighInCard
               unit={weightUnit}
               saving={cardLog.isPending}
@@ -261,6 +266,21 @@ export default function MetricsPage() {
             </>
           )}
 
+          {!loggedIn ? (
+            <section className="ct-card ct-metric-card ct-locked" aria-labelledby="weight-title">
+              <div className="ct-section-head">
+                <span className="ct-section-title" id="weight-title">Weight</span>
+              </div>
+              <Link to="/login" className="ct-locked-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
+                <span className="ct-locked-text">Weight is private</span>
+                <span className="ct-locked-cta">Log in ›</span>
+              </Link>
+            </section>
+          ) : (
           <WeightSection
             span={span}
             onSpan={setSpan}
@@ -273,6 +293,7 @@ export default function MetricsPage() {
             onLog={openSheet}
             onDelete={handleDelete}
           />
+          )}
         </div>
       </div>
 
@@ -292,7 +313,7 @@ export default function MetricsPage() {
         ) : null}
       </div>
 
-      {sheet.visible && (
+      {loggedIn && sheet.visible && (
         <WeighInSheet
           open={sheet.open}
           today={today}

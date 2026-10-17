@@ -2128,3 +2128,107 @@
 
 /* Metrics: fasting tiles sit under the section title, above the readout */
 .ct-fast-stats { margin: 10px 0 2px; }
+
+/* ── Read-only view (signed out) ────────────────────────────────────────────── */
+
+.ct-app { --viewbar-h: 44px; }
+/* Header chip in the REC badge's spot — muted: it's a state, not an action */
+.ct-viewonly-chip {
+  color: var(--muted);
+  background: var(--bg2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: default;
+}
+.ct-viewonly-chip:hover { opacity: 1; }
+/* Empty meal row without the + LOG chip */
+.ct-meal-empty .ct-meal-none {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-family: var(--font-display);
+  color: var(--muted);
+}
+/* Room for the view-only bar above the tab bar */
+.ct-tabbed.ct-viewonly {
+  padding-bottom: calc(var(--tabbar-h) + var(--viewbar-h) + env(safe-area-inset-bottom));
+}
+.ct-tabbed.ct-viewonly .ct-scroll,
+.ct-tabbed.ct-viewonly .ct-page {
+  min-height: calc(100dvh - var(--tabbar-h) - var(--viewbar-h) - env(safe-area-inset-bottom));
+}
+.ct-viewbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom));
+  z-index: 40;
+  max-width: 430px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  min-height: var(--viewbar-h);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.ct-viewbar-text { color: var(--muted); white-space: nowrap; }
+.ct-viewbar-cta { color: var(--accent); white-space: nowrap; }
+.ct-viewbar:hover .ct-viewbar-cta { text-decoration: underline; text-underline-offset: 3px; }
+.ct-viewbar:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Toasts clear the bar too (e.g. after logging in again on the same page) */
+.ct-tabbed.ct-viewonly .ct-toast-region {
+  bottom: calc(var(--tabbar-h) + var(--viewbar-h) + 1px + env(safe-area-inset-bottom) + 12px);
+}
+
+/* Locked weight card */
+.ct-locked-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  margin-top: 6px;
+  padding: 0 4px;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+.ct-locked-text { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; }
+.ct-locked-cta {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.ct-locked-row:hover { background: var(--accent-soft); }
+.ct-locked-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Login: secondary "view without logging in" link */
+.ct-login-alt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+.ct-login-alt:hover { color: var(--ink); }
