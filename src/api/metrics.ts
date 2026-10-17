@@ -19,5 +19,7 @@ export const getSummary = (from: string, to: string) =>
         fiber: Number(d.fiber) || 0,
         goalCalories: Number(d.goalCalories) || 0,
         exerciseCalories: Number(d.exerciseCalories) || 0,
+        eatingStartedAt: d.eatingStartedAt ?? null,
+        eatingEndedAt: d.eatingEndedAt ?? null,
       }))
     )

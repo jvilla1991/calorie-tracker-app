@@ -2020,3 +2020,111 @@
 }
 .ct-readout-ex { color: var(--c); }
 .ct-readout-3l { gap: 1px; line-height: 1.2; }
+
+/* ── Eating window ──────────────────────────────────────────────────────────── */
+
+.ct-ew {
+  padding: 13px 15px 15px;
+  margin-bottom: 13px;
+}
+.ct-ew .ct-section-head { min-height: 30px; }
+.ct-ew-chip {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--bg2);
+  padding: 5px 9px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.ct-ew-chip.open { color: var(--accent); background: var(--accent-soft); }
+.ct-ew-timeline { margin: 10px 0 10px; }
+.ct-dark-theme .ct-ew-bar { filter: drop-shadow(0 0 4px rgba(255,122,26,0.45)); }
+/* Live end of an open window (today only) */
+.ct-ew-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ct-ew-pulse 1.6s ease-out infinite;
+}
+@keyframes ct-ew-pulse {
+  0%   { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ct-ew-pulse { animation: none; opacity: 0.6; }
+}
+.ct-ew-stats { gap: 6px; }
+.ct-ew-cell { padding: 9px 11px 8px; }
+.ct-ew-num { font-size: 18px; }
+.ct-ew-num.live { color: var(--accent); }
+/* Tappable time: looks like the LCD number, 44px tall, dotted underline = editable */
+.ct-ew-time {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: -12px 0 -10px;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  text-underline-offset: 4px;
+}
+.ct-ew-time:hover { color: var(--accent); }
+.ct-ew-time:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.ct-dark-theme .ct-ew-time { text-shadow: 0 0 14px rgba(255,122,26,0.3); }
+.ct-ew-action {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.ct-ew-stop {
+  border: 1.5px solid var(--accent);
+  background: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.ct-ew-stop:hover { background: var(--accent-soft); }
+.ct-ew-stop:disabled { opacity: 0.5; cursor: default; }
+.ct-ew-log { min-height: 44px; margin-top: 12px; }
+.ct-ew-err { margin-top: 8px; }
+/* Edit sheet */
+.ct-ew-in { min-height: 48px; font-family: var(--font-display); font-weight: 700; }
+.ct-ew-note { text-transform: none; }
+.ct-ew-clear {
+  min-height: 44px;
+  border: none;
+  background: none;
+  color: var(--redline);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.ct-ew-clear:hover { background: color-mix(in srgb, var(--redline) 10%, transparent); }
+.ct-ew-clear:disabled { opacity: 0.5; cursor: default; }
+
+/* Metrics: fasting tiles sit under the section title, above the readout */
+.ct-fast-stats { margin: 10px 0 2px; }
