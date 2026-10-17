@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { login } from '../api/auth'
+import { setAuthToken } from '../hooks/useAuth'
+import { todayLocal } from '../utils/date'
 
 /** Message for a failed login. 401 is the API's answer for bad credentials; 403 is
  *  kept for older API versions that used it for the same thing. */
@@ -27,7 +29,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const token = await login(username, password)
-      localStorage.setItem('ct_token', token)
+      setAuthToken(token)
       navigate('/', { replace: true })
     } catch (err) {
       setError(loginErrorText(err))
@@ -80,6 +82,8 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        <Link to={`/diary/${todayLocal()}`} className="ct-login-alt">View without logging in</Link>
       </div>
     </div>
   )

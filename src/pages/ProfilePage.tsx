@@ -5,6 +5,8 @@ import { getGoals, updateGoals } from '../api/goals'
 import { useTheme } from '../contexts/ThemeContext'
 import { useSettings } from '../contexts/settings'
 import { useSheet } from '../hooks/useSheet'
+import { clearAuthToken } from '../hooks/useAuth'
+import { todayLocal } from '../utils/date'
 import type { DailyGoal } from '../types'
 
 type GoalForm = Omit<DailyGoal, 'id' | 'effectiveFrom'>
@@ -100,11 +102,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     setLoggingOut(true)
-    try {
-      localStorage.removeItem('ct_token')
-    } catch {
-      // Storage unavailable — nothing persisted to remove.
-    }
+    clearAuthToken()
     // Drop every cached query so nothing from this session lingers in memory.
     qc.clear()
     // Drop API responses the service worker cached for offline use. Never block logout on this.
@@ -113,7 +111,8 @@ export default function ProfilePage() {
     } catch {
       // Cache API unavailable or failed — safe to ignore.
     }
-    navigate('/login', { replace: true })
+    // Signed out, the app is a read-only view — land on today's diary.
+    navigate(`/diary/${todayLocal()}`, { replace: true })
   }
 
   return (
@@ -209,7 +208,7 @@ export default function ProfilePage() {
               <span className="ct-sheet-title" id="logout-title">Log out of this device?</span>
             </div>
             <p className="ct-sheet-text">
-              You will need to sign in again to use the app on this device.
+              The diary stays viewable, but you will need to sign in again to make changes on this device.
             </p>
             <div className="ct-sheet-actions">
               <button type="button" className="ct-sheet-cancel" onClick={logoutSheet.hide} disabled={loggingOut}>

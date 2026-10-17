@@ -16,6 +16,7 @@ import EatingWindowSheet from '../components/EatingWindowSheet'
 import { toIsoWithOffset } from '../utils/eatingWindow'
 import { useToday } from '../hooks/useToday'
 import { useSheet } from '../hooks/useSheet'
+import { useAuth } from '../hooks/useAuth'
 import { addDays, parseLocalDate } from '../utils/date'
 import type { Food, DailyGoal, MacroTotals, DiaryResponse } from '../types'
 
@@ -106,6 +107,8 @@ export default function DiaryPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const today = useToday()
+  // Signed out = read-only: every write control below is hidden (swiping days still works).
+  const { loggedIn } = useAuth()
   const currentDate = date ?? today
   const isToday = currentDate === today
 
@@ -367,8 +370,10 @@ export default function DiaryPage() {
           <div className="ct-top-row">
             <div className="ct-greet">{greeting()}</div>
             <div className="ct-top-right">
+              {!loggedIn && <div className="ct-cluster-badge ct-viewonly-chip">VIEW ONLY</div>}
               {isToday ? (
-                <div className="ct-cluster-badge">● REC · TODAY</div>
+                // Nothing is being recorded in the read-only view, so the REC badge goes.
+                loggedIn ? <div className="ct-cluster-badge">● REC · TODAY</div> : null
               ) : (
                 <button
                   type="button"
@@ -409,7 +414,7 @@ export default function DiaryPage() {
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
               </div>
             ) : (
-              <GaugeHero totals={totals} goal={effectiveGoals} exercise={exerciseKcal} onGoalClick={() => navigate('/profile#goals')} />
+              <GaugeHero totals={totals} goal={effectiveGoals} exercise={exerciseKcal} onGoalClick={loggedIn ? () => navigate('/profile#goals') : undefined} />
             )}
           </div>
 
@@ -423,6 +428,7 @@ export default function DiaryPage() {
               isToday={isToday}
               window={shownDiary?.eatingWindow ?? null}
               prevEndedAt={prevEndedAt}
+              canEdit={loggedIn}
               busy={setWindowMut.isPending}
               error={!windowSheet.visible && setWindowMut.isError ? errorText(setWindowMut.error) : null}
               onStart={startEating}
@@ -444,15 +450,19 @@ export default function DiaryPage() {
                 return (
                   <div key={mealType} className="ct-meal ct-card ct-meal-empty">
                     <span className="ct-meal-title">{label}</span>
-                    <button
-                      type="button"
-                      className="ct-log-btn"
-                      onClick={() => handleOpenAddFood(mealType)}
-                      disabled={isCreating}
-                      aria-label={`Log item to ${label}`}
-                    >
-                      <span className="ct-log-chip">{isCreating ? 'Opening…' : '+ Log'}</span>
-                    </button>
+                    {loggedIn ? (
+                      <button
+                        type="button"
+                        className="ct-log-btn"
+                        onClick={() => handleOpenAddFood(mealType)}
+                        disabled={isCreating}
+                        aria-label={`Log item to ${label}`}
+                      >
+                        <span className="ct-log-chip">{isCreating ? 'Opening…' : '+ Log'}</span>
+                      </button>
+                    ) : (
+                      <span className="ct-meal-none" aria-label="Nothing logged">—</span>
+                    )}
                   </div>
                 )
               }
@@ -471,30 +481,34 @@ export default function DiaryPage() {
                           <span className="ct-item-ident">{identOf(item.food.name)}</span>
                           <span className="ct-item-name">{item.food.name}</span>
                           <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
-                          <button
-                            className="ct-item-x"
-                            onClick={() => handleDelete('food', item.id, item.food.name)}
-                            aria-label={`Remove ${item.food.name}`}
-                          >
-                            <span className="ct-item-x-ic">
-                              <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
-                                <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                              </svg>
-                            </span>
-                          </button>
+                          {loggedIn && (
+                            <button
+                              className="ct-item-x"
+                              onClick={() => handleDelete('food', item.id, item.food.name)}
+                              aria-label={`Remove ${item.food.name}`}
+                            >
+                              <span className="ct-item-x-ic">
+                                <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
+                                  <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                </svg>
+                              </span>
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <button
-                    className="ct-add-btn"
-                    onClick={() => handleOpenAddFood(mealType)}
-                    disabled={isCreating}
-                  >
-                    <span className="ct-add-plus">+</span>
-                    {isCreating ? 'Opening…' : 'Log item'}
-                  </button>
+                  {loggedIn && (
+                    <button
+                      className="ct-add-btn"
+                      onClick={() => handleOpenAddFood(mealType)}
+                      disabled={isCreating}
+                    >
+                      <span className="ct-add-plus">+</span>
+                      {isCreating ? 'Opening…' : 'Log item'}
+                    </button>
+                  )}
                 </div>
               )
             })}
@@ -503,14 +517,18 @@ export default function DiaryPage() {
             {exercise.length === 0 ? (
               <div className="ct-meal ct-card ct-meal-empty ct-exercise">
                 <span className="ct-meal-title">Exercise</span>
-                <button
-                  type="button"
-                  className="ct-log-btn"
-                  onClick={openExerciseSheet}
-                  aria-label="Log exercise"
-                >
-                  <span className="ct-log-chip">+ Log</span>
-                </button>
+                {loggedIn ? (
+                  <button
+                    type="button"
+                    className="ct-log-btn"
+                    onClick={openExerciseSheet}
+                    aria-label="Log exercise"
+                  >
+                    <span className="ct-log-chip">+ Log</span>
+                  </button>
+                ) : (
+                  <span className="ct-meal-none" aria-label="Nothing logged">—</span>
+                )}
               </div>
             ) : (
               <div className="ct-meal ct-card ct-exercise">
@@ -526,24 +544,28 @@ export default function DiaryPage() {
                       <span className="ct-item-ident">{identOf(e.name)}</span>
                       <span className="ct-item-name">{e.name}</span>
                       <span className="ct-item-kcal">−{comma(e.calories)}</span>
-                      <button
-                        className="ct-item-x"
-                        onClick={() => handleDelete('exercise', e.id, e.name)}
-                        aria-label={`Remove ${e.name}`}
-                      >
-                        <span className="ct-item-x-ic">
-                          <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
-                            <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                          </svg>
-                        </span>
-                      </button>
+                      {loggedIn && (
+                        <button
+                          className="ct-item-x"
+                          onClick={() => handleDelete('exercise', e.id, e.name)}
+                          aria-label={`Remove ${e.name}`}
+                        >
+                          <span className="ct-item-x-ic">
+                            <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
+                              <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
-                <button className="ct-add-btn" onClick={openExerciseSheet}>
-                  <span className="ct-add-plus">+</span>
-                  Log exercise
-                </button>
+                {loggedIn && (
+                  <button className="ct-add-btn" onClick={openExerciseSheet}>
+                    <span className="ct-add-plus">+</span>
+                    Log exercise
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -569,7 +591,7 @@ export default function DiaryPage() {
 
       {/* Food search sheet — rendered OUTSIDE ct-scroll so position:fixed works
           correctly regardless of the parent's overflow-x:hidden. */}
-      {activeSheet !== null && (
+      {loggedIn && activeSheet !== null && (
         <FoodSearchModal
           mealLabel={MEAL_LABELS[activeSheet.mealType] ?? activeSheet.mealType}
           onAdd={handleAddFood}
@@ -577,7 +599,7 @@ export default function DiaryPage() {
         />
       )}
 
-      {windowSheet.visible && (
+      {loggedIn && windowSheet.visible && (
         <EatingWindowSheet
           open={windowSheet.open}
           date={currentDate}
@@ -593,7 +615,7 @@ export default function DiaryPage() {
         />
       )}
 
-      {exerciseSheet.visible && (
+      {loggedIn && exerciseSheet.visible && (
         <ExerciseSheet
           open={exerciseSheet.open}
           saving={addExerciseMut.isPending}

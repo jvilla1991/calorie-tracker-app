@@ -16,6 +16,8 @@ interface Props {
   window: EatingWindow | null
   /** The previous day's endedAt, for the FASTED readout. */
   prevEndedAt: string | null
+  /** False hides every control (the read-only view): times are plain text. */
+  canEdit?: boolean
   busy: boolean
   /** A failed START / STOP, shown under the button. */
   error?: string | null
@@ -44,7 +46,7 @@ function useNow(active: boolean, ms = 30_000): number {
  * readouts (started / ended / window length / fast since yesterday) and, on today,
  * a START / STOP button. A log only — there is no target window and no countdown.
  */
-export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt, busy, error, onStart, onStop, onEdit }: Props) {
+export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt, canEdit = true, busy, error, onStart, onStop, onEdit }: Props) {
   const [wrapRef, W] = useElementWidth<HTMLDivElement>()
   const now = useNow(isToday)
   const open = !!w && !w.endedAt
@@ -75,14 +77,18 @@ export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt
     return (
       <div className="ct-stat ct-ew-cell">
         <div className="ct-stat-label">{label}</div>
-        <button
-          type="button"
-          className="ct-ew-time"
-          onClick={onEdit}
-          aria-label={`${label} ${iso ? value : 'not set'} — edit times`}
-        >
-          {value}
-        </button>
+        {canEdit ? (
+          <button
+            type="button"
+            className="ct-ew-time"
+            onClick={onEdit}
+            aria-label={`${label} ${iso ? value : 'not set'} — edit times`}
+          >
+            {value}
+          </button>
+        ) : (
+          <div className="ct-stat-num ct-ew-num">{value}</div>
+        )}
       </div>
     )
   }
@@ -151,17 +157,17 @@ export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt
         </div>
       </div>
 
-      {isToday && state === 'none' && (
+      {canEdit && isToday && state === 'none' && (
         <button type="button" className="ct-save-btn ct-ew-action" onClick={onStart} disabled={busy}>
           {busy ? 'Saving…' : 'Start eating'}
         </button>
       )}
-      {isToday && state === 'open' && (
+      {canEdit && isToday && state === 'open' && (
         <button type="button" className="ct-ew-action ct-ew-stop" onClick={onStop} disabled={busy}>
           {busy ? 'Saving…' : 'Stop eating'}
         </button>
       )}
-      {!isToday && state === 'none' && (
+      {canEdit && !isToday && state === 'none' && (
         <button type="button" className="ct-add-btn ct-ew-log" onClick={onEdit}>
           <span className="ct-add-plus">+</span> Log times
         </button>

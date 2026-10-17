@@ -18,12 +18,17 @@ api.interceptors.request.use((config) => {
 /** The login call itself — a 401 there means "wrong password", not "session expired". */
 const isLoginRequest = (url?: string) => !!url && url.split('?')[0].replace(/\/+$/, '').endsWith('/auth/login')
 
-// A 401 anywhere else means the token is missing, expired or revoked: drop it and
-// send the user to sign in again. The full page load also resets all cached data.
+/** Did this request go out with a token? (Signed-out reads are sent without one.) */
+const sentWithToken = (config?: { headers?: unknown }) =>
+  !!(config?.headers as Record<string, unknown> | undefined)?.Authorization
+
+// A 401 on a request that carried a token means it expired or was revoked: drop it
+// and send the user to sign in again (the full page load also resets cached data).
+// Without a token a 401 just fails that request — the read-only view stays put.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && !isLoginRequest(err.config?.url)) {
+    if (err.response?.status === 401 && sentWithToken(err.config) && !isLoginRequest(err.config?.url)) {
       localStorage.removeItem('ct_token')
       if (window.location.pathname !== '/login') window.location.href = '/login'
     }
