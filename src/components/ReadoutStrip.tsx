@@ -5,6 +5,8 @@ const comma = (n: number) => Math.round(n).toLocaleString('en-US')
 interface Props {
   totals: MacroTotals
   goal: DailyGoal
+  /** Calories burned today — added to the goal to give the budget. */
+  exercise?: number
   /** True once the gauge card has scrolled out of view. */
   visible: boolean
   onClick: () => void
@@ -16,12 +18,12 @@ interface Props {
  * mounted and toggled with a class, so showing/hiding is a cheap transform/opacity
  * transition. Tapping it scrolls back to the top (handled by the parent).
  */
-export default function ReadoutStrip({ totals, goal, visible, onClick }: Props) {
+export default function ReadoutStrip({ totals, goal, exercise = 0, visible, onClick }: Props) {
   const eaten = totals.calories
-  const goalK = goal.calories
-  const remaining = goalK - eaten
-  const over = eaten > goalK
-  const pct = goalK > 0 ? Math.min(100, (eaten / goalK) * 100) : 0
+  const budget = goal.calories + Math.max(0, exercise)
+  const remaining = budget - eaten
+  const over = eaten > budget
+  const pct = budget > 0 ? Math.min(100, (eaten / budget) * 100) : 0
 
   const macros = [
     { key: 'P', color: 'var(--p)', value: totals.protein, target: goal.protein },
@@ -44,6 +46,7 @@ export default function ReadoutStrip({ totals, goal, visible, onClick }: Props) 
           <span className="ct-strip-unit">kcal</span>
         </span>
         <span className="ct-strip-left">
+          {exercise > 0 && <span className="ct-strip-ex">+{comma(exercise)} ex · </span>}
           {over ? '+' : ''}{comma(Math.abs(remaining))} {over ? 'over' : 'left'}
         </span>
       </span>

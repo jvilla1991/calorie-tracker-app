@@ -21,7 +21,11 @@ export default function StatTiles({ stats }: { stats: RangeStats }) {
       <Tile
         label="Avg / day"
         value={empty || stats.avg === null ? DASH : comma(stats.avg)}
-        cap={stats.avgGoal ? `vs ${comma(stats.avgGoal)} goal` : 'kcal'}
+        cap={
+          stats.avgBudget && stats.exercise > 0
+            ? `vs ${comma(stats.avgBudget)} budget`
+            : stats.avgGoal ? `vs ${comma(stats.avgGoal)} goal` : 'kcal'
+        }
       />
       <Tile
         label="On target"

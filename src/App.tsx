@@ -16,20 +16,14 @@ function ThemedShell() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Navigate to={`/diary/${todayLocal()}`} replace />
-            </ProtectedRoute>
-          }
-        />
+        {/* Signed in or not, the app opens on today's diary (read-only when signed out) */}
+        <Route path="/" element={<Navigate to={`/diary/${todayLocal()}`} replace />} />
 
-        {/* Signed-in pages share the bottom tab bar */}
+        {/* Tabbed pages. Diary and Metrics are viewable signed out; Profile is not. */}
         <Route element={<TabLayout />}>
           <Route path="/diary/:date" element={<DiaryPage />} />
           <Route path="/metrics" element={<MetricsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         </Route>
 
         {/* Goals now live on the Profile page */}

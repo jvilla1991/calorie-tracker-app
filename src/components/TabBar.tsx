@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useToday } from '../hooks/useToday'
+import { useAuth } from '../hooks/useAuth'
 
 const ICON = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
@@ -30,10 +31,20 @@ function ProfileIcon() {
   )
 }
 
-/** Fixed bottom navigation shown on every signed-in page. */
+function LoginIcon() {
+  return (
+    <svg {...ICON} aria-hidden>
+      <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+      <path d="M10 16l4-4-4-4M14 12H4" />
+    </svg>
+  )
+}
+
+/** Fixed bottom navigation. Signed out, the Profile tab becomes LOG IN. */
 export default function TabBar() {
   const { pathname } = useLocation()
   const today = useToday()
+  const { loggedIn } = useAuth()
   const tabClass = (active: boolean) => 'ct-tab' + (active ? ' active' : '')
 
   return (
@@ -51,10 +62,17 @@ export default function TabBar() {
         <MetricsIcon />
         <span className="ct-tab-label">Metrics</span>
       </NavLink>
-      <NavLink to="/profile" className={({ isActive }) => tabClass(isActive)}>
-        <ProfileIcon />
-        <span className="ct-tab-label">Profile</span>
-      </NavLink>
+      {loggedIn ? (
+        <NavLink to="/profile" className={({ isActive }) => tabClass(isActive)}>
+          <ProfileIcon />
+          <span className="ct-tab-label">Profile</span>
+        </NavLink>
+      ) : (
+        <NavLink to="/login" className={({ isActive }) => tabClass(isActive)}>
+          <LoginIcon />
+          <span className="ct-tab-label">Log in</span>
+        </NavLink>
+      )}
     </nav>
   )
 }
