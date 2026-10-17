@@ -28,6 +28,8 @@ export default function EatingWindowSheet({ open, date, window: w, saving, serve
     e.preventDefault()
     if (!preview) { setError('Set a start time.'); return }
     if (isInFuture(preview.startedAt)) { setError('The start can’t be in the future.'); return }
+    // The API rejects an end more than a few minutes ahead too; leave it blank while still eating.
+    if (preview.endedAt && isInFuture(preview.endedAt)) { setError('The end can’t be in the future — leave it blank while you’re still eating.'); return }
     setError(null)
     onSave(preview.startedAt, preview.endedAt)
   }
