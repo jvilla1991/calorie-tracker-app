@@ -16,6 +16,7 @@
   --needle:       #161614;
   --p:            #FF5A1F;
   --c:            #1A7CC2;
+  --window:       #23A455;
   --f:            #6B7280;
   --radius:       6px;
   --radius-sm:    5px;
@@ -39,6 +40,7 @@
   --needle:       #EDEFF3;
   --p:            #FF7A1A;
   --c:            #36C5F0;
+  --window:       #3DDC84;
   --f:            #9AA3B2;
   --radius:       7px;
   --radius-sm:    6px;
@@ -1557,6 +1559,9 @@
   min-width: 0;
 }
 .ct-metric-card .ct-section-head { gap: 8px; min-height: 30px; }
+/* A long chart key drops under the title on narrow phones instead of wrapping the title */
+.ct-metric-card .ct-section-head { flex-wrap: wrap; row-gap: 4px; }
+.ct-metric-card .ct-section-title { white-space: nowrap; }
 .ct-chart-key {
   display: inline-flex;
   align-items: center;
@@ -1977,47 +1982,28 @@
 .ct-lcd-ex { color: var(--c); margin-top: -1px; }
 .ct-strip-ex { color: var(--c); }
 
-/* Log-exercise sheet: quick-pick name chips */
-.ct-ex-picks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
-}
-.ct-ex-pick {
-  min-height: 44px;
-  min-width: 56px;
-  padding: 0 12px;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  cursor: pointer;
-  transition: background .15s, border-color .15s, color .15s;
-}
-.ct-ex-pick:hover { border-color: var(--c); }
-.ct-ex-pick.active {
-  background: color-mix(in srgb, var(--c) 15%, transparent);
-  border-color: var(--c);
-  color: var(--c);
-}
-.ct-ex-pick:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 .ct-exercise-sheet .ct-in-suffix .ct-in { padding-right: 52px; }
 
-/* Metrics: exercise band in the calorie bars + its legend swatch and readout text */
+/* Metrics: burned bar + eating-window strip in the calorie bars, their legend swatches and readout text */
 .ct-key-ex {
   display: inline-block;
   width: 9px;
   height: 9px;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--c) 45%, transparent);
+  background: var(--c);
   margin-left: 4px;
 }
+.ct-key-win {
+  display: inline-block;
+  width: 12px;
+  height: 5px;
+  border-radius: 1.5px;
+  background: var(--window);
+  margin-left: 4px;
+}
+.ct-readout-win { color: var(--window); }
+/* Daily calories readout: room for up to four short lines (date, food, budget, window) */
+.ct-readout-cal { min-height: 56px; }
 .ct-readout-ex { color: var(--c); }
 .ct-readout-3l { gap: 1px; line-height: 1.2; }
 
@@ -2059,7 +2045,6 @@
 .ct-ew-stats { gap: 6px; }
 .ct-ew-cell { padding: 9px 11px 8px; }
 .ct-ew-num { font-size: 18px; }
-.ct-ew-num.live { color: var(--accent); }
 /* Tappable time: looks like the LCD number, 44px tall, dotted underline = editable */
 .ct-ew-time {
   display: block;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { EatingWindow } from '../types'
 import { useElementWidth } from '../hooks/useElementWidth'
-import { dayFraction, formatClock, formatDuration, gapMs, hoursIntoDay } from '../utils/eatingWindow'
+import { dayFraction, formatClock, hoursIntoDay } from '../utils/eatingWindow'
 
 const MONO = "'Space Mono', monospace"
 const H = 40
@@ -14,8 +14,6 @@ interface Props {
   date: string
   isToday: boolean
   window: EatingWindow | null
-  /** The previous day's endedAt, for the FASTED readout. */
-  prevEndedAt: string | null
   /** False hides every control (the read-only view): times are plain text. */
   canEdit?: boolean
   busy: boolean
@@ -42,15 +40,14 @@ function useNow(active: boolean, ms = 30_000): number {
 }
 
 /**
- * The day's eating window: a 24-hour timeline with the window drawn on it, LCD
- * readouts (started / ended / window length / fast since yesterday) and, on today,
- * a START / STOP button. A log only — there is no target window and no countdown.
+ * The day's eating window: a 24-hour timeline with the window drawn on it, the
+ * started / ended times and, on today, a START / STOP button. A log only — window
+ * length and time fasted live on the Metrics page's Daily calories chart.
  */
-export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt, canEdit = true, busy, error, onStart, onStop, onEdit }: Props) {
+export default function EatingWindowCard({ date, isToday, window: w, canEdit = true, busy, error, onStart, onStop, onEdit }: Props) {
   const [wrapRef, W] = useElementWidth<HTMLDivElement>()
   const now = useNow(isToday)
   const open = !!w && !w.endedAt
-  const nowIso = new Date(now).toISOString()
 
   const startF = w ? dayFraction(w.startedAt, date) : 0
   // An open window runs to "now" on today (never before its own start — the clock
@@ -58,14 +55,6 @@ export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt
   const endF = w ? Math.max(startF, dayFraction(w.endedAt ?? (isToday ? now : w.startedAt), date)) : 0
   const nowF = dayFraction(now, date)
   const x = (f: number) => 1 + f * (W - 2)
-
-  const windowMs = !w ? null
-    : w.endedAt ? gapMs(w.startedAt, w.endedAt)
-    : isToday ? Math.max(0, now - new Date(w.startedAt).getTime())
-    : null
-  const fastedMs = w ? gapMs(prevEndedAt, w.startedAt) : null
-  // No window yet today, but yesterday's ended: the fast is still running.
-  const fastingMs = !w && isToday ? gapMs(prevEndedAt, nowIso) : null
 
   const state = open ? 'open' : w ? 'closed' : 'none'
 
@@ -143,18 +132,6 @@ export default function EatingWindowCard({ date, isToday, window: w, prevEndedAt
       <div className="ct-stats ct-ew-stats">
         {timeCell('Started', w?.startedAt)}
         {timeCell('Ended', w?.endedAt)}
-        <div className="ct-stat ct-ew-cell">
-          <div className="ct-stat-label">{open && isToday ? 'Open' : 'Window'}</div>
-          <div className={'ct-stat-num ct-ew-num' + (open && isToday ? ' live' : '')}>
-            {windowMs !== null ? formatDuration(windowMs) : DASH}
-          </div>
-        </div>
-        <div className="ct-stat ct-ew-cell">
-          <div className="ct-stat-label">{fastingMs !== null ? 'Fasting' : 'Fasted'}</div>
-          <div className={'ct-stat-num ct-ew-num' + (fastingMs !== null ? ' live' : '')}>
-            {fastedMs !== null ? formatDuration(fastedMs) : fastingMs !== null ? formatDuration(fastingMs) : DASH}
-          </div>
-        </div>
       </div>
 
       {canEdit && isToday && state === 'none' && (

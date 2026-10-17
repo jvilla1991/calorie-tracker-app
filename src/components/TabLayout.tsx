@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
 import { Link, Outlet } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { recentFoodsQuery } from '../api/foods'
 import { useAuth } from '../hooks/useAuth'
 import TabBar from './TabBar'
 
@@ -9,6 +12,11 @@ import TabBar from './TabBar'
  */
 export default function TabLayout() {
   const { loggedIn } = useAuth()
+  const qc = useQueryClient()
+  // Warm the food sheet's recent list in the background as the app loads.
+  useEffect(() => {
+    if (loggedIn) qc.prefetchInfiniteQuery(recentFoodsQuery)
+  }, [loggedIn, qc])
   return (
     <>
       <div className={'ct-tabbed' + (loggedIn ? '' : ' ct-viewonly')}>

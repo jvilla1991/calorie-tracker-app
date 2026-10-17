@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import type { MouseEvent } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { searchFoods, lookupBarcode, createFood, getRecentFoods } from '../api/foods'
+import { searchFoods, lookupBarcode, createFood, recentFoodsQuery } from '../api/foods'
 import type { Food, FoodSearchResult, RecentFood } from '../types'
 import BarcodeScannerView from './BarcodeScannerView'
 import { useScrollLock } from '../hooks/useScrollLock'
@@ -10,7 +10,6 @@ const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
 
 const OZ_TO_G = 28.3495
-const RECENT_PAGE_SIZE = 20
 const HISTORY_MATCH_LIMIT = 5
 const RELOG_FEEDBACK_MS = 1200
 const fmt1 = (n: number) => (Math.round(n * 10) / 10).toString()
@@ -48,22 +47,15 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   const [mode, setMode] = useState<Mode>('pick')
 
   // ── Recent foods (paginated, infinite scroll) ─────────────────────────────
-  // Key stays ['recent-foods'] so invalidations elsewhere (DiaryPage refreshes it
-  // when this sheet closes after something was logged) refresh every loaded page.
+  // Shared query (prefetched at startup by TabLayout), so the list is usually ready
+  // the moment the sheet opens.
   const {
     data: recentData,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     isFetchNextPageError,
-  } = useInfiniteQuery({
-    queryKey: ['recent-foods'],
-    queryFn: ({ pageParam }) => getRecentFoods(pageParam, RECENT_PAGE_SIZE),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
-      lastPage.length < RECENT_PAGE_SIZE ? undefined : lastPageParam + 1,
-    staleTime: 30_000,
-  })
+  } = useInfiniteQuery(recentFoodsQuery)
 
   // Flatten pages and dedupe by food id — if the backend's ordering shifts between
   // page loads (e.g. a food was logged in between), never show a food twice.
