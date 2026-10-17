@@ -2,22 +2,32 @@
 // No React, no DOM — every function here is a plain input → output calculation.
 import type { DaySummary } from '../types'
 
-/** A day counts as "on target" when calories are within this fraction of the goal. */
+/** A day counts as "on target" when calories are within this fraction of the budget. */
 export const TARGET_BAND = 0.1
 
+/**
+ * A day's effective budget: its goal plus every calorie burned (exercise adds back 1:1).
+ * 0 when the day has no goal — there is nothing to judge it against then.
+ */
+export const budgetOf = (d: DaySummary) =>
+  d.goalCalories > 0 ? d.goalCalories + Math.max(0, d.exerciseCalories || 0) : 0
+
 export const isLogged = (d: DaySummary) => d.calories > 0
-export const isOverGoal = (d: DaySummary) =>
-  d.goalCalories > 0 && d.calories > d.goalCalories * (1 + TARGET_BAND)
-export const isOnTarget = (d: DaySummary) =>
-  isLogged(d) && d.goalCalories > 0 &&
-  Math.abs(d.calories - d.goalCalories) <= d.goalCalories * TARGET_BAND
+export const isOverGoal = (d: DaySummary) => {
+  const b = budgetOf(d)
+  return b > 0 && d.calories > b * (1 + TARGET_BAND)
+}
+export const isOnTarget = (d: DaySummary) => {
+  const b = budgetOf(d)
+  return isLogged(d) && b > 0 && Math.abs(d.calories - b) <= b * TARGET_BAND
+}
 
 export interface RangeStats {
   /** Days in the range (7 or 30). */
   days: number
   /** Days with anything logged (calories > 0). */
   logged: number
-  /** Logged days within ±10% of that day's goal. */
+  /** Logged days within ±10% of that day's budget (goal + exercise). */
   onTarget: number
   /** Sum of calories over the whole range. */
   total: number
@@ -25,6 +35,10 @@ export interface RangeStats {
   avg: number | null
   /** Average goal over the logged days, rounded; null when nothing was logged. */
   avgGoal: number | null
+  /** Average budget (goal + exercise) over the logged days, rounded; null when nothing was logged. */
+  avgBudget: number | null
+  /** Calories burned over the whole range. */
+  exercise: number
 }
 
 export function rangeStats(days: DaySummary[]): RangeStats {
@@ -38,6 +52,8 @@ export function rangeStats(days: DaySummary[]): RangeStats {
     total,
     avg: n ? logged.reduce((s, d) => s + d.calories, 0) / n : null,
     avgGoal: n ? Math.round(logged.reduce((s, d) => s + d.goalCalories, 0) / n) : null,
+    avgBudget: n ? Math.round(logged.reduce((s, d) => s + budgetOf(d), 0) / n) : null,
+    exercise: days.reduce((s, d) => s + Math.max(0, d.exerciseCalories || 0), 0),
   }
 }
 

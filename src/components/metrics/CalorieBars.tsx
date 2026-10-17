@@ -3,7 +3,7 @@ import type { KeyboardEvent } from 'react'
 import type { DaySummary } from '../../types'
 import { useElementWidth } from '../../hooks/useElementWidth'
 import { parseLocalDate } from '../../utils/date'
-import { comma, isLogged, isOverGoal, kLabel, zeroTicks } from '../../utils/metrics'
+import { budgetOf, comma, isLogged, isOverGoal, kLabel, zeroTicks } from '../../utils/metrics'
 
 const MONO = "'Space Mono', monospace"
 const H = 168          // chart height in px
@@ -25,14 +25,18 @@ const readoutDate = (s: string) =>
     .replace(',', '')
     .toUpperCase()
 
-/** Daily calories as bars, with each day's goal drawn as a dashed tick across its slot. */
+/**
+ * Daily calories as bars, with each day's budget (goal + exercise) drawn as a dashed tick
+ * across its slot. Exercise shows as a blue band from the base goal up to that tick.
+ */
 export default function CalorieBars({ days, today, selected, onSelect }: Props) {
   const navigate = useNavigate()
   const [wrapRef, W] = useElementWidth<HTMLDivElement>()
 
   const n = days.length
   const maxCal = Math.max(0, ...days.map((d) => d.calories))
-  const maxGoal = Math.max(0, ...days.map((d) => d.goalCalories))
+  const maxGoal = Math.max(0, ...days.map(budgetOf))
+  const anyExercise = days.some((d) => d.exerciseCalories > 0)
   // Scale: 10% headroom over the tallest bar or goal; gridlines on round numbers below it.
   const top = Math.max(maxCal, maxGoal, 1) * 1.1
   const ticks = zeroTicks(top, 4)
@@ -68,7 +72,8 @@ export default function CalorieBars({ days, today, selected, onSelect }: Props) 
       <div className="ct-section-head">
         <span className="ct-section-title">Daily calories</span>
         <span className="ct-chart-key">
-          <span className="ct-key-goal" aria-hidden /> goal
+          {anyExercise && <><span className="ct-key-ex" aria-hidden /> ex</>}
+          <span className="ct-key-goal" aria-hidden /> {anyExercise ? 'budget' : 'goal'}
         </span>
       </div>
 
@@ -76,12 +81,23 @@ export default function CalorieBars({ days, today, selected, onSelect }: Props) 
       <div className="ct-readout" aria-live="polite">
         {sel ? (
           <>
-            <span className="ct-readout-text ct-readout-2l">
+            <span className={'ct-readout-text ct-readout-2l' + (sel.exerciseCalories > 0 ? ' ct-readout-3l' : '')}>
               <span className="ct-readout-date">{readoutDate(sel.date)}</span>
-              <span>
-                <b className={isOverGoal(sel) ? 'over' : ''}>{comma(sel.calories)} KCAL</b>
-                {sel.goalCalories > 0 && <> · GOAL {comma(sel.goalCalories)}</>}
-              </span>
+              {sel.exerciseCalories > 0 ? (
+                // Three short lines so FOOD · EX · BUDGET never truncate beside "Open day" at 320px.
+                <>
+                  <span>
+                    FOOD <b className={isOverGoal(sel) ? 'over' : ''}>{comma(sel.calories)}</b>
+                    {' · '}<span className="ct-readout-ex">EX {comma(sel.exerciseCalories)}</span>
+                  </span>
+                  {budgetOf(sel) > 0 && <span>BUDGET {comma(budgetOf(sel))}</span>}
+                </>
+              ) : (
+                <span>
+                  <b className={isOverGoal(sel) ? 'over' : ''}>{comma(sel.calories)} KCAL</b>
+                  {sel.goalCalories > 0 && <> · GOAL {comma(sel.goalCalories)}</>}
+                </span>
+              )}
             </span>
             <button type="button" className="ct-readout-btn" onClick={() => navigate(`/diary/${sel.date}`)}>
               Open day ›
@@ -126,8 +142,18 @@ export default function CalorieBars({ days, today, selected, onSelect }: Props) 
             const isSel = d.date === selected
             const isToday = d.date === today
             const by = y(d.calories)
+            const budget = budgetOf(d)
             return (
               <g key={d.date}>
+                {/* exercise allowance: base goal → budget, behind the food bar */}
+                {d.goalCalories > 0 && d.exerciseCalories > 0 && (
+                  <rect
+                    x={x0(i) + 0.5} width={Math.max(1, slot - 1)}
+                    y={y(budget)} height={Math.max(1, y(d.goalCalories) - y(budget))}
+                    fill="var(--c)" opacity={selected && !isSel ? 0.12 : 0.28}
+                    className="ct-bar-ex"
+                  />
+                )}
                 {logged ? (
                   <rect
                     x={bx} y={by} width={barW} height={Math.max(1, PAD_T + plotH - by)}
@@ -151,10 +177,10 @@ export default function CalorieBars({ days, today, selected, onSelect }: Props) 
                   />
                 )}
                 {/* goal tick: spans the slot so consecutive days join into a stepped line */}
-                {d.goalCalories > 0 && (
+                {budget > 0 && (
                   <line
                     x1={x0(i) + 0.5} x2={x0(i) + slot - 0.5}
-                    y1={y(d.goalCalories)} y2={y(d.goalCalories)}
+                    y1={y(budget)} y2={y(budget)}
                     stroke="var(--ink)" strokeWidth="1.5" strokeDasharray="3 2" opacity="0.85"
                   />
                 )}
@@ -178,7 +204,7 @@ export default function CalorieBars({ days, today, selected, onSelect }: Props) 
                   role="button"
                   tabIndex={0}
                   aria-pressed={isSel}
-                  aria-label={`${readoutDate(d.date)}: ${comma(d.calories)} kcal${d.goalCalories ? `, goal ${comma(d.goalCalories)}` : ''}`}
+                  aria-label={`${readoutDate(d.date)}: ${comma(d.calories)} kcal${d.exerciseCalories > 0 ? `, exercise ${comma(d.exerciseCalories)}` : ''}${budget ? `, ${d.exerciseCalories > 0 ? 'budget' : 'goal'} ${comma(budget)}` : ''}`}
                   onClick={() => onSelect(isSel ? null : d.date)}
                   onKeyDown={(e) => onKey(e, d.date)}
                 />

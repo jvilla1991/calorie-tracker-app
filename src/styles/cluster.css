@@ -1960,3 +1960,63 @@
   border-radius: var(--radius-sm);
 }
 .ct-show-all:hover { background: var(--accent-soft); }
+
+/* ── Exercise ───────────────────────────────────────────────────────────────── */
+
+/* The exercise card reuses the meal card's classes; re-pointing the accent tokens at
+   the carbs blue turns its ident chips, + LOG chip, ✕ hover and add button "cool". */
+.ct-exercise,
+.ct-exercise-sheet {
+  --accent: var(--c);
+  --accent-soft: color-mix(in srgb, var(--c) 15%, transparent);
+}
+.ct-ex-total { color: var(--c); }
+.ct-exercise .ct-item-kcal { color: var(--c); }
+
+/* Gauge LCD: "+320 BURNED" under the goal caption, only when exercise is logged */
+.ct-lcd-ex { color: var(--c); margin-top: -1px; }
+.ct-strip-ex { color: var(--c); }
+
+/* Log-exercise sheet: quick-pick name chips */
+.ct-ex-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.ct-ex-pick {
+  min-height: 44px;
+  min-width: 56px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.ct-ex-pick:hover { border-color: var(--c); }
+.ct-ex-pick.active {
+  background: color-mix(in srgb, var(--c) 15%, transparent);
+  border-color: var(--c);
+  color: var(--c);
+}
+.ct-ex-pick:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+.ct-exercise-sheet .ct-in-suffix .ct-in { padding-right: 52px; }
+
+/* Metrics: exercise band in the calorie bars + its legend swatch and readout text */
+.ct-key-ex {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--c) 45%, transparent);
+  margin-left: 4px;
+}
+.ct-readout-ex { color: var(--c); }
+.ct-readout-3l { gap: 1px; line-height: 1.2; }
