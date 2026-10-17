@@ -3,7 +3,7 @@ import type { TouchEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
-import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow } from '../api/diary'
+import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow, updateMealDetails } from '../api/diary'
 import { getGoals } from '../api/goals'
 import GaugeHero from '../components/GaugeHero'
 import MacroDials from '../components/MacroDials'
@@ -12,12 +12,14 @@ import FoodSearchModal from '../components/FoodSearchModal'
 import ExerciseSheet from '../components/ExerciseSheet'
 import EatingWindowCard from '../components/EatingWindowCard'
 import EatingWindowSheet from '../components/EatingWindowSheet'
+import MealDetailsSheet from '../components/MealDetailsSheet'
+import MealNote from '../components/MealNote'
 import { toIsoWithOffset } from '../utils/eatingWindow'
 import { useToday } from '../hooks/useToday'
 import { useSheet } from '../hooks/useSheet'
 import { useAuth } from '../hooks/useAuth'
 import { addDays, parseLocalDate } from '../utils/date'
-import type { Food, DailyGoal, MacroTotals, DiaryResponse } from '../types'
+import type { Food, DailyGoal, MacroTotals, DiaryMeal, DiaryResponse } from '../types'
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Breakfast',
@@ -70,6 +72,30 @@ function withoutItem(d: DiaryResponse, itemId: number): DiaryResponse {
   }
 }
 
+/**
+ * The diary with one meal's note and estimate replaced by the server's copy. The estimate
+ * counts toward calories, so the meal and day totals move by the change in estimate.
+ */
+function withMealDetails(d: DiaryResponse, meal: DiaryMeal): DiaryResponse {
+  const old = d.meals.find((m) => m.id === meal.id)
+  if (!old) return d
+  const delta = (meal.estimatedCalories ?? 0) - (old.estimatedCalories ?? 0)
+  return {
+    ...d,
+    totals: { ...d.totals, calories: Math.max(0, d.totals.calories + delta) },
+    meals: d.meals.map((m) =>
+      m.id === meal.id
+        ? {
+            ...m,
+            note: meal.note,
+            estimatedCalories: meal.estimatedCalories,
+            totals: { ...m.totals, calories: Math.max(0, m.totals.calories + delta) },
+          }
+        : m
+    ),
+  }
+}
+
 /** The diary with one exercise entry removed and the burned total reduced to match. */
 function withoutExercise(d: DiaryResponse, id: number): DiaryResponse {
   const entry = d.exercise.find((e) => e.id === id)
@@ -95,6 +121,13 @@ type PendingDelete = { kind: 'food' | 'exercise'; id: number; name: string; date
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+const PENCIL = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 20h8" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+  </svg>
+)
 
 function greeting() {
   const h = new Date().getHours()
@@ -211,10 +244,34 @@ export default function DiaryPage() {
     queryFn: getGoals,
   })
 
+  // ── Meal rows ───────────────────────────────────────────────────────────────
+  // A meal has no row until something is attached to it. Logging food or saving a note
+  // creates the row first; requests for the same meal share one create, so a meal is
+  // never created twice (the API would happily make a second Breakfast).
+  const creatingMeals = useRef(new Map<string, Promise<number>>())
+  const ensureMealId = useCallback((date: string, mealType: string): Promise<number> => {
+    const existing = qc.getQueryData<DiaryResponse>(['diary', date])?.meals.find((m) => m.mealType === mealType)
+    if (existing) return Promise.resolve(existing.id)
+    const key = `${date}|${mealType}`
+    const inFlight = creatingMeals.current.get(key)
+    if (inFlight) return inFlight
+    const created = addMeal(date, mealType).then((meal) => {
+      qc.setQueryData<DiaryResponse>(['diary', date], (d) =>
+        d && !d.meals.some((m) => m.id === meal.id) ? { ...d, meals: [...d.meals, meal] } : d)
+      qc.invalidateQueries({ queryKey: ['diary', date] })
+      return meal.id
+    })
+    creatingMeals.current.set(key, created)
+    created.catch(() => creatingMeals.current.delete(key)) // a failed create can be retried
+    return created
+  }, [qc])
+
+  // The food sheet opens instantly; its meal row is looked up or created on the first add,
+  // and later adds in the same sheet reuse that promise. Creation goes through
+  // ensureMealId, so a note or photo saved at the same moment shares the one create.
   const mealIdFor = (date: string, mealType: string): Promise<number> => {
     if (!sheetMealRef.current) {
-      const existing = qc.getQueryData<DiaryResponse>(['diary', date])?.meals.find((m) => m.mealType === mealType)
-      const p = existing ? Promise.resolve(existing.id) : addMeal(date, mealType).then((m) => m.id)
+      const p = ensureMealId(date, mealType)
       // A failed create is forgotten so the next add tries again.
       p.catch(() => { if (sheetMealRef.current === p) sheetMealRef.current = null })
       sheetMealRef.current = p
@@ -324,6 +381,26 @@ export default function DiaryPage() {
 
   const handleOpenAddFood = (mealType: string) => openSheet({ mealType, date: currentDate })
 
+  // ── Meal note + estimate ("eating out?") ────────────────────────────────────
+  const detailsSheet = useSheet()
+  const [detailsFor, setDetailsFor] = useState<string | null>(null)
+  const detailsMut = useMutation({
+    mutationFn: async ({ date, mealType, note, estimatedCalories }: { date: string; mealType: string; note: string | null; estimatedCalories: number | null }) =>
+      updateMealDetails(await ensureMealId(date, mealType), note, estimatedCalories),
+    onSuccess: (meal, { date }) => {
+      qc.setQueryData<DiaryResponse>(['diary', date], (d) => (d ? withMealDetails(d, meal) : d))
+      qc.invalidateQueries({ queryKey: ['diary', date] })
+      // The estimate counts toward the day's calories, so Metrics changes too.
+      qc.invalidateQueries({ queryKey: ['summary'] })
+      detailsSheet.hide()
+    },
+  })
+  const openDetails = (mealType: string) => {
+    detailsMut.reset()
+    setDetailsFor(mealType)
+    detailsSheet.show()
+  }
+
   const handleAddFood = (food: Food, grams: number) => {
     if (!activeSheet) return
     addItemMut.mutate({ ...activeSheet, foodId: food.id, grams })
@@ -342,6 +419,7 @@ export default function DiaryPage() {
   const sortedMeals = [...(shownDiary?.meals ?? [])].sort(
     (a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)
   )
+  const detailsMeal = detailsFor ? sortedMeals.find((m) => m.mealType === detailsFor) : undefined
 
   return (
     <>
@@ -432,21 +510,37 @@ export default function DiaryPage() {
               const meal = sortedMeals.find((m) => m.mealType === mealType)
               const label = MEAL_LABELS[mealType] ?? mealType
               const mealKcal = meal ? Math.round(meal.totals.calories) : 0
+              const hasDetails = !!meal && (meal.note != null || meal.estimatedCalories != null)
 
-              // Nothing logged yet: one compact row instead of a title + full-width button.
-              if (!meal || meal.items.length === 0) {
+              // "Eating out?" — opens the note + estimate sheet.
+              const noteBtn = loggedIn && (
+                <button
+                  type="button"
+                  className="ct-meal-tool"
+                  onClick={() => openDetails(mealType)}
+                  aria-label={hasDetails ? `Edit the ${label} note and estimate` : `Add a note to ${label}`}
+                >
+                  <span className="ct-meal-tool-ic">{PENCIL}</span>
+                </button>
+              )
+
+              // Nothing on the meal yet: one compact row instead of a title + full-width button.
+              if (!meal || (meal.items.length === 0 && !hasDetails)) {
                 return (
                   <div key={mealType} className="ct-meal ct-card ct-meal-empty">
                     <span className="ct-meal-title">{label}</span>
                     {loggedIn ? (
-                      <button
-                        type="button"
-                        className="ct-log-btn"
-                        onClick={() => handleOpenAddFood(mealType)}
-                        aria-label={`Log item to ${label}`}
-                      >
-                        <span className="ct-log-chip">+ Log</span>
-                      </button>
+                      <div className="ct-meal-empty-r">
+                        {noteBtn}
+                        <button
+                          type="button"
+                          className="ct-log-btn"
+                          onClick={() => handleOpenAddFood(mealType)}
+                          aria-label={`Log item to ${label}`}
+                        >
+                          <span className="ct-log-chip">+ Log</span>
+                        </button>
+                      </div>
                     ) : (
                       <span className="ct-meal-none" aria-label="Nothing logged">—</span>
                     )}
@@ -458,10 +552,15 @@ export default function DiaryPage() {
                 <div key={mealType} className="ct-meal ct-card">
                   <div className="ct-meal-head">
                     <span className="ct-meal-title">{label}</span>
-                    {mealKcal > 0 && <span className="ct-meal-kcal">{mealKcal} kcal</span>}
+                    <div className="ct-meal-head-r">
+                      {mealKcal > 0 && <span className="ct-meal-kcal">{comma(mealKcal)} kcal</span>}
+                      {noteBtn}
+                    </div>
                   </div>
 
-                  {meal.items.length > 0 && (
+                  {meal.note && <MealNote key={meal.id} text={meal.note} />}
+
+                  {(meal.items.length > 0 || meal.estimatedCalories != null) && (
                     <div className="ct-meal-list">
                       {meal.items.map((item) => (
                         <div className="ct-item ct-item-mono" key={item.id}>
@@ -483,6 +582,23 @@ export default function DiaryPage() {
                           )}
                         </div>
                       ))}
+                      {/* The rough guess for what couldn't be logged: dashed ≈ chip, no macros. */}
+                      {meal.estimatedCalories != null && (
+                        <div className="ct-item ct-item-mono ct-item-est">
+                          <span className="ct-item-ident ct-est-ident" aria-hidden>≈</span>
+                          <span className="ct-item-name ct-est-name">Estimate</span>
+                          <span className="ct-item-kcal">{comma(meal.estimatedCalories)}</span>
+                          {loggedIn && (
+                            <button
+                              className="ct-item-x ct-item-edit"
+                              onClick={() => openDetails(mealType)}
+                              aria-label={`Edit the estimate for ${label}`}
+                            >
+                              <span className="ct-item-x-ic">{PENCIL}</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -598,6 +714,21 @@ export default function DiaryPage() {
           onSave={(s, e) => setWindowMut.mutate({ startedAt: toIsoWithOffset(s), endedAt: e ? toIsoWithOffset(e) : null })}
           onClear={() => clearWindowMut.mutate()}
           onClose={windowSheet.hide}
+        />
+      )}
+
+      {loggedIn && detailsSheet.visible && detailsFor && (
+        <MealDetailsSheet
+          key={detailsFor}
+          open={detailsSheet.open}
+          mealLabel={MEAL_LABELS[detailsFor] ?? detailsFor}
+          note={detailsMeal?.note ?? null}
+          estimatedCalories={detailsMeal?.estimatedCalories ?? null}
+          saving={detailsMut.isPending}
+          serverError={detailsMut.isError ? errorText(detailsMut.error) : null}
+          onSave={(note, estimatedCalories) =>
+            detailsMut.mutate({ date: currentDate, mealType: detailsFor, note, estimatedCalories })}
+          onClose={detailsSheet.hide}
         />
       )}
 

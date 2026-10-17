@@ -41,7 +41,12 @@ export interface DiaryMeal {
   mealType: string
   displayOrder: number
   items: DiaryItem[]
+  /** Already includes `estimatedCalories` in `calories` (the estimate has no macros). */
   totals: MacroTotals
+  /** Free-text note, e.g. what was eaten out (≤500 chars); null when none. */
+  note: string | null
+  /** Rough kcal for food that couldn't be logged (whole number 1–10,000); null when none. */
+  estimatedCalories: number | null
 }
 
 /** Calories burned by one logged activity. They add back to that day's budget. */
