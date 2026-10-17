@@ -5,8 +5,6 @@ import type { FormEvent } from 'react'
 export const EXERCISE_NAME_MAX = 60
 export const EXERCISE_KCAL_MAX = 5000
 
-const QUICK_PICKS = ['Walk', 'Run', 'Lift', 'Bike']
-
 interface Props {
   open: boolean
   saving: boolean
@@ -77,19 +75,6 @@ export default function ExerciseSheet({ open, saving, serverError, onSubmit, onC
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? 'exercise-name-error' : undefined}
             />
-            <div className="ct-ex-picks" role="group" aria-label="Common activities">
-              {QUICK_PICKS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  className={'ct-ex-pick' + (name.trim() === p ? ' active' : '')}
-                  aria-pressed={name.trim() === p}
-                  onClick={() => { setName(p); setErrors((x) => ({ ...x, name: undefined })) }}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
             {errors.name && <div className="ct-error-msg" id="exercise-name-error" role="alert">{errors.name}</div>}
           </div>
 
