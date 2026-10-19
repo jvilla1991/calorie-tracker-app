@@ -2613,3 +2613,33 @@
   font-size: 11.5px;
   color: #FF7A70;
 }
+
+/* ── Weigh-in due banner (signed in, top of the diary) ──────────────────────── */
+/* The banner is now the top of the page, so it keeps clear of the notch instead */
+.ct-has-banner .ct-scroll { padding-top: 2px; }
+.ct-weighin-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  max-width: 398px;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: calc(10px + env(safe-area-inset-top)) auto 0;
+  padding: 0 14px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.ct-weighin-banner-dot { color: var(--accent); font-size: 9px; }
+.ct-weighin-banner-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-weighin-banner-cta { color: var(--accent); white-space: nowrap; }
+.ct-weighin-banner:hover .ct-weighin-banner-cta { text-decoration: underline; text-underline-offset: 3px; }
+.ct-weighin-banner:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
