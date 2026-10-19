@@ -122,3 +122,31 @@ export function fastingStats(days: DaySummary[]): FastingStats {
 
 /** 7.42 → "7h 25m" */
 export const hoursLabel = (h: number) => formatDuration(h * HOUR)
+
+// ── Typed 12-hour times (the sheet's number-keyboard fields) ─────────────────
+
+/** Digits as typed → "h:mm" with the colon filled in: "9" → "9", "945" → "9:45", "1245" → "12:45". */
+export function formatTypedTime(raw: string): string {
+  const d = raw.replace(/\D/g, '').slice(0, 4)
+  return d.length <= 2 ? d : `${d.slice(0, -2)}:${d.slice(-2)}`
+}
+
+/**
+ * A typed 12-hour time plus AM/PM → "HH:MM" (24h). "" when nothing was typed; null when
+ * it isn't a real time. One or two digits are a whole hour ("9" → 9:00).
+ */
+export function typedTo24h(text: string, pm: boolean): string | null {
+  const d = text.replace(/\D/g, '')
+  if (!d) return ''
+  const h = Number(d.length <= 2 ? d : d.slice(0, -2))
+  const m = d.length <= 2 ? 0 : Number(d.slice(-2))
+  if (h < 1 || h > 12 || m > 59) return null
+  const h24 = (h % 12) + (pm ? 12 : 0)
+  return `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/** "HH:MM" (24h) → the typed form and AM/PM: "13:05" → { text: "1:05", pm: true }. */
+export function from24h(hhmm: string): { text: string; pm: boolean } {
+  const [h, m] = hhmm.split(':').map(Number)
+  return { text: `${h % 12 || 12}:${String(m).padStart(2, '0')}`, pm: h >= 12 }
+}
