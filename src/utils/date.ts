@@ -40,3 +40,9 @@ export function daysBetween(a: string, b: string): number {
 export function shortDate(s: string): string {
   return parseLocalDate(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
+
+/** The Monday on or before `s` (weeks run Monday–Sunday). */
+export function mondayOf(s: string): string {
+  const dow = parseLocalDate(s).getDay() // 0 = Sunday … 6 = Saturday
+  return addDays(s, -((dow + 6) % 7))
+}

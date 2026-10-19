@@ -11,7 +11,7 @@ interface Props {
   onLog: (weightKg: number) => void
 }
 
-/** "Weekly weigh-in" prompt, shown at the top of Metrics when the last one is 7+ days old. */
+/** "Weekly weigh-in" prompt, shown at the top of Metrics until this week's (Monday) weigh-in is logged. */
 export default function WeighInCard({ unit, saving, serverError, onLog }: Props) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)

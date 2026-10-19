@@ -9,6 +9,7 @@ import { useSheet } from '../hooks/useSheet'
 import { addDays, parseLocalDate, shortDate } from '../utils/date'
 import { useToday } from '../hooks/useToday'
 import { useAuth } from '../hooks/useAuth'
+import { useWeighInDue } from '../hooks/useWeighInDue'
 import { formatWeight } from '../utils/weight'
 import { RANGE_DAYS, WEIGHT_SPANS, macroSplit, rangeStats } from '../utils/metrics'
 import type { CalorieRange, WeightSpan } from '../utils/metrics'
@@ -27,8 +28,6 @@ const WEIGHT_KEY = 'ct_weight_range'
 const UNDO_MS = 5000
 /** How long a plain confirmation toast ("Logged 178.4 lb") stays up. */
 const INFO_MS = 3000
-/** A weigh-in is due when none was logged in this many days (today included). */
-const WEIGH_IN_EVERY = 7
 
 function readPref<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
   try {
@@ -136,6 +135,8 @@ export default function MetricsPage() {
   const pendingRef = useRef<WeighIn | null>(null)
   const undoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [pendingDelete, setPendingDelete] = useState<WeighIn | null>(null)
+  // Same Monday rule as the app-wide banner.
+  const weighInDue = useWeighInDue(pendingDelete?.id ?? null)
 
   const commitDelete = useCallback(() => {
     const p = pendingRef.current
@@ -200,8 +201,6 @@ export default function MetricsPage() {
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const shownWeighIns = (weighIns.data ?? []).filter((w) => w.id !== pendingDelete?.id)
-  const dueSince = addDays(today, -(WEIGH_IN_EVERY - 1))
-  const weighInDue = weighIns.isSuccess && !shownWeighIns.some((w) => w.date >= dueSince && w.date <= today)
 
   const days = (summary.data ?? []).filter((d) => d.date >= from)
   const prevDay = summary.data?.find((d) => d.date === before) ?? null
