@@ -2095,6 +2095,8 @@
 /* Edit sheet */
 .ct-ew-in { min-height: 48px; font-family: var(--font-display); font-weight: 700; }
 .ct-ew-note { text-transform: none; }
+.ct-ew-ampm { margin-top: 6px; }
+.ct-ew-ampm .ct-unit-btn { flex: 1; }
 .ct-ew-clear {
   min-height: 44px;
   border: none;

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { EatingWindow } from '../types'
-import { formatDuration, isInFuture, timeInputValue, windowFromTimes } from '../utils/eatingWindow'
+import { formatDuration, formatTypedTime, from24h, isInFuture, timeInputValue, typedTo24h, windowFromTimes } from '../utils/eatingWindow'
 import { shortDate } from '../utils/date'
 
 interface Props {
@@ -16,16 +16,63 @@ interface Props {
   onClose: () => void
 }
 
+type Typed = { text: string; pm: boolean }
+
+/** A field's starting value: the stored time, or empty with AM/PM matching the clock now. */
+const initial = (iso: string | null | undefined): Typed =>
+  iso ? from24h(timeInputValue(iso)) : { text: '', pm: new Date().getHours() >= 12 }
+
+/**
+ * A time typed on the number keyboard (a native time input opens a picker wheel on
+ * phones instead), with the colon filled in as you type and an AM/PM toggle beside it.
+ */
+function TimeField({ id, label, value, onChange }: { id: string; label: string; value: Typed; onChange: (v: Typed) => void }) {
+  return (
+    <div className="ct-field">
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9:]*"
+        autoComplete="off"
+        placeholder="12:30"
+        maxLength={5}
+        className="ct-in ct-ew-in"
+        value={value.text}
+        onChange={(e) => onChange({ ...value, text: formatTypedTime(e.target.value) })}
+      />
+      <div className="ct-unit-seg ct-ew-ampm" role="group" aria-label={`${label} AM or PM`}>
+        {(['AM', 'PM'] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            className={'ct-unit-btn' + (value.pm === (m === 'PM') ? ' active' : '')}
+            aria-pressed={value.pm === (m === 'PM')}
+            onClick={() => onChange({ ...value, pm: m === 'PM' })}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Bottom sheet to set or correct the day's start / end times (local clock). */
 export default function EatingWindowSheet({ open, date, window: w, saving, serverError, onSave, onClear, onClose }: Props) {
-  const [start, setStart] = useState(w ? timeInputValue(w.startedAt) : '')
-  const [end, setEnd] = useState(w?.endedAt ? timeInputValue(w.endedAt) : '')
+  const [startT, setStartT] = useState<Typed>(() => initial(w?.startedAt))
+  const [endT, setEndT] = useState<Typed>(() => initial(w?.endedAt))
   const [error, setError] = useState<string | null>(null)
 
-  const preview = start ? windowFromTimes(date, start, end) : null
+  // "HH:MM" (24h); '' = blank, null = not a real time.
+  const start = typedTo24h(startT.text, startT.pm)
+  const end = typedTo24h(endT.text, endT.pm)
+  const preview = start && end !== null ? windowFromTimes(date, start, end) : null
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    if (start === null || end === null) { setError('Enter a time like 12:30.'); return }
     if (!preview) { setError('Set a start time.'); return }
     if (isInFuture(preview.startedAt)) { setError('The start can’t be in the future.'); return }
     // The API rejects an end more than a few minutes ahead too; leave it blank while still eating.
@@ -53,27 +100,8 @@ export default function EatingWindowSheet({ open, date, window: w, saving, serve
 
         <form className="ct-weighin-form" onSubmit={submit} noValidate>
           <div className="ct-field-row">
-            <div className="ct-field">
-              <label htmlFor="ew-start">Started</label>
-              <input
-                id="ew-start"
-                type="time"
-                className="ct-in ct-ew-in"
-                value={start}
-                onChange={(e) => { setStart(e.target.value); setError(null) }}
-                required
-              />
-            </div>
-            <div className="ct-field">
-              <label htmlFor="ew-end">Ended</label>
-              <input
-                id="ew-end"
-                type="time"
-                className="ct-in ct-ew-in"
-                value={end}
-                onChange={(e) => { setEnd(e.target.value); setError(null) }}
-              />
-            </div>
+            <TimeField id="ew-start" label="Started" value={startT} onChange={(v) => { setStartT(v); setError(null) }} />
+            <TimeField id="ew-end" label="Ended" value={endT} onChange={(v) => { setEndT(v); setError(null) }} />
           </div>
 
           <div className="ct-replace-note ct-ew-note">
