@@ -22,6 +22,8 @@ An `.ipa` is the iPhone's install file. Building one requires a Mac, so GitHub b
    (sign in to GitHub to download).
 2. Open the latest green run and download `CalorieTracker-ipa` under **Artifacts**.
 3. Unzip it to get `CalorieTracker.ipa`.
+4. Save that file somewhere permanent. You reinstall from it to renew the app, and GitHub deletes
+   build files after about 90 days.
 
 ## 2. Install it
 
@@ -50,8 +52,9 @@ Installing over the existing app normally keeps you signed in. A free Apple ID c
 ## When a new IPA is needed
 
 Only when the wrapper changes: `ios/`, `ios-shell/`, `capacitor.config.json`, or the Capacitor
-packages. Pushing those changes builds a new IPA automatically. You can also start a build from
-the Actions page with **Run workflow**.
+packages. Pushing those changes builds a new IPA automatically. Once the workflow is on `main`, you can also
+start a build from the Actions page with **Run workflow**. Use that if you lose your saved IPA and
+GitHub has already deleted its copy.
 
 After changing `capacitor.config.json` or adding a Capacitor plugin, run this and commit the result:
 
