@@ -60,6 +60,16 @@ jobs:
             --delete \
             --region "$AWS_REGION"
 
+      # Without a Cache-Control header, CloudFront and the iOS app's web view decide on their
+      # own how long to keep index.html. A stale copy points at hashed files that --delete has
+      # just removed, which gives a white screen. The iOS app has no service worker to cover it.
+      - name: Make index.html check for updates on every load
+        run: |
+          aws s3 cp dist/index.html "s3://${{ secrets.S3_BUCKET_NAME }}/index.html" \
+            --cache-control "no-cache" \
+            --content-type "text/html" \
+            --region "$AWS_REGION"
+
       # ── CloudFront invalidation ───────────────────────────────────────────────
       # Bust the index.html + service worker so users get the new version.
       # Hashed assets don't need invalidation — new filenames are embedded in index.html.
@@ -68,4 +78,4 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths "/index.html" "/sw.js" "/manifest.webmanifest" "/registerSW.js"
+            --paths "/" "/index.html" "/sw.js" "/manifest.webmanifest" "/registerSW.js"
