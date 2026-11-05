@@ -5,6 +5,7 @@ import { searchFoods, lookupBarcode, createFood, recentFoodsQuery } from '../api
 import type { Food, FoodSearchResult, RecentFood } from '../types'
 import BarcodeScannerView from './BarcodeScannerView'
 import { useScrollLock } from '../hooks/useScrollLock'
+import { useDialogFocus } from '../hooks/useDialogFocus'
 
 const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
@@ -365,17 +366,35 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
   const goBack = () => { setMode('pick'); setSelected(null); setPendingRecent(null); setScanError(null); setSaveError(null) }
 
+  // ── Keyboard ──────────────────────────────────────────────────────────────
+  // Escape steps back to the list first, matching the Back button, then closes the sheet.
+  const sheetRef = useRef<HTMLDivElement>(null)
+  useDialogFocus(sheetRef, () => { if (mode === 'pick') handleClose(); else goBack() })
+  // Changing screens removes the focused button, so bring focus back into the sheet.
+  useEffect(() => {
+    const sheet = sheetRef.current
+    if (sheet && !sheet.contains(document.activeElement)) sheet.focus()
+  }, [mode])
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={'ct-sheet-scrim' + (open ? ' open' : '')} onClick={handleClose}>
-      <div className={'ct-sheet' + (open ? ' open' : '')} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={sheetRef}
+        className={'ct-sheet' + (open ? ' open' : '')}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="food-sheet-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="ct-sheet-handle" />
 
         {/* ── Pick ──────────────────────────────────────────────────────────── */}
         {mode === 'pick' && (
           <>
             <div className="ct-sheet-head">
-              <span className="ct-sheet-title">Add to {mealLabel}</span>
+              <span className="ct-sheet-title" id="food-sheet-title">Add to {mealLabel}</span>
               <button className="ct-sheet-close" onClick={handleClose}>Done</button>
             </div>
 
@@ -385,10 +404,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
               </svg>
               <input
-                className="ct-search-in" placeholder="Search your foods"
+                className="ct-search-in" placeholder="Search your foods" aria-label="Search your foods"
                 value={q} onChange={(e) => setQ(e.target.value)}
               />
-              <button className="ct-scan-btn" title="Scan barcode" onClick={() => setMode('scan')}>
+              <button className="ct-scan-btn" title="Scan barcode" aria-label="Scan barcode" onClick={() => setMode('scan')}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 9V5a2 2 0 0 1 2-2h4M3 15v4a2 2 0 0 0 2 2h4M21 9V5a2 2 0 0 0-2-2h-4M21 15v4a2 2 0 0 1-2 2h-4" />
                   <line x1="7" y1="8" x2="7" y2="16" /><line x1="10" y1="8" x2="10" y2="16" />
@@ -466,7 +485,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">{mealLabel}</span>
+              <span className="ct-sheet-title" id="food-sheet-title">{mealLabel}</span>
               <span style={{ width: 40 }} />
             </div>
 
@@ -514,6 +533,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                     className="ct-in"
                     type="number"
                     inputMode="decimal"
+                    aria-label={`New amount in ${newUnit === 'g' ? 'grams' : 'ounces'}`}
                     value={newQty}
                     min="0.1"
                     step={newUnit === 'g' ? '1' : '0.1'}
@@ -561,7 +581,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">{mealLabel}</span>
+              <span className="ct-sheet-title" id="food-sheet-title">{mealLabel}</span>
               <span style={{ width: 40 }} />
             </div>
             <div className="ct-form">
@@ -584,9 +604,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               </div>
 
               <div className="ct-field">
-                <label>Quantity</label>
+                <label htmlFor="food-quantity">Quantity</label>
                 <div className="ct-portion-row">
                   <input
+                    id="food-quantity"
                     className="ct-in" type="number" inputMode="decimal" value={quantity}
                     min="0.1" step={unit === 'g' ? '1' : '0.1'}
                     onChange={(e) => setQuantity(e.target.value)} style={{ flex: 1 }}
@@ -628,7 +649,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">New food</span>
+              <span className="ct-sheet-title" id="food-sheet-title">New food</span>
               <span style={{ width: 40 }} />
             </div>
             <div className="ct-form">
@@ -643,18 +664,18 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 </div>
               </div>
               <div className="ct-field ct-field-name">
-                <input className="ct-in" placeholder="Food name" autoFocus value={form.name}
+                <input className="ct-in" placeholder="Food name" aria-label="Food name" autoFocus value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
               </div>
               <div className="ct-field">
-                <input className="ct-in" placeholder="Brand (optional)" value={form.brand}
+                <input className="ct-in" placeholder="Brand (optional)" aria-label="Brand (optional)" value={form.brand}
                   onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
               </div>
               {measureMode === 'perServing' && (
                 <div className="ct-field">
-                  <label>Serving size</label>
+                  <label htmlFor="food-serving">Serving size</label>
                   <div className="ct-portion-row">
-                    <input className="ct-in" type="number" inputMode="decimal" min="0.1" step="0.1"
+                    <input id="food-serving" className="ct-in" type="number" inputMode="decimal" min="0.1" step="0.1"
                       placeholder="e.g. 250" value={form.servingQty}
                       onChange={(e) => setForm((f) => ({ ...f, servingQty: e.target.value }))} style={{ flex: 1 }} />
                     <div className="ct-unit-seg">
@@ -668,24 +689,24 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 </div>
               )}
               <div className="ct-field">
-                <label>Calories <span style={{ fontWeight: 400, opacity: 0.65 }}>
+                <label htmlFor="food-kcal">Calories <span style={{ fontWeight: 400, opacity: 0.65 }}>
                   {measureMode === 'perServing' ? '(per serving)' : '(per 100g)'}
                 </span></label>
-                <input className="ct-in" type="number" inputMode="numeric" placeholder="0"
+                <input id="food-kcal" className="ct-in" type="number" inputMode="numeric" placeholder="0"
                   value={form.kcal} onChange={(e) => setForm((f) => ({ ...f, kcal: e.target.value }))} />
               </div>
               <div className="ct-field-row">
                 {([['protein','Protein'],['carbs','Carbs'],['fat','Fat']] as const).map(([key, label]) => (
                   <div key={key} className="ct-field">
-                    <label>{label}</label>
-                    <input className="ct-in" type="number" inputMode="numeric" placeholder="0"
+                    <label htmlFor={`food-${key}`}>{label}</label>
+                    <input id={`food-${key}`} className="ct-in" type="number" inputMode="numeric" placeholder="0"
                       value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
                   </div>
                 ))}
               </div>
               <div className="ct-field">
-                <label>Fiber <span style={{ fontWeight: 400, opacity: 0.65 }}>(optional)</span></label>
-                <input className="ct-in" type="number" inputMode="numeric" placeholder="0"
+                <label htmlFor="food-fiber">Fiber <span style={{ fontWeight: 400, opacity: 0.65 }}>(optional)</span></label>
+                <input id="food-fiber" className="ct-in" type="number" inputMode="numeric" placeholder="0"
                   value={form.fiber} onChange={(e) => setForm((f) => ({ ...f, fiber: e.target.value }))} />
               </div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', letterSpacing: 0.4 }}>
@@ -707,7 +728,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">Scan barcode</span>
+              <span className="ct-sheet-title" id="food-sheet-title">Scan barcode</span>
               <span style={{ width: 40 }} />
             </div>
             {scanError && <div className="ct-error-msg" style={{ margin: '0 0 8px' }}>{scanError}</div>}

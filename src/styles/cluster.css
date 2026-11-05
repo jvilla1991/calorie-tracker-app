@@ -759,6 +759,8 @@
   overscroll-behavior: contain;
 }
 .ct-sheet.open { transform: translateY(0); }
+/* Focus lands on the sheet itself when it opens; its controls keep their focus rings. */
+.ct-sheet:focus { outline: none; }
 .ct-sheet-handle {
   width: 40px;
   height: 4px;
