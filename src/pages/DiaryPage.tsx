@@ -520,9 +520,15 @@ export default function DiaryPage() {
     },
   })
 
-  const handleAddFood = (food: Food, grams: number) => {
+  const handleAddFood = async (food: Food, grams: number) => {
     if (!activeSheet) return
-    addItemMut.mutate({ ...activeSheet, foodId: food.id, grams })
+    try {
+      await addItemMut.mutateAsync({ ...activeSheet, foodId: food.id, grams })
+    } catch (err) {
+      // The open sheet shows its own error; once it has closed, this toast is the only signal.
+      if (!sheetOpenRef.current) showInfo(`Couldn't log ${food.name}. Try again.`)
+      throw err
+    }
   }
 
   // What the page shows: the server diary minus an item waiting in the undo window.
