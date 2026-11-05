@@ -65,7 +65,7 @@
   position: relative;
   color: var(--ink);
   background: var(--bg);
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Barlow', system-ui, sans-serif;
   --font-display: 'Space Mono', ui-monospace, monospace;
 }
 
