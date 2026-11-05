@@ -73,7 +73,7 @@ function GoalsForm({ initial }: { initial: GoalForm }) {
       )}
 
       <button type="submit" className="ct-save-btn ct-section-btn" disabled={mut.isPending}>
-        {mut.isPending ? 'Saving…' : saved ? 'Saved ✓' : 'Save Goals'}
+        {mut.isPending ? 'Saving…' : saved ? 'Saved' : 'Save Goals'}
       </button>
     </form>
   )

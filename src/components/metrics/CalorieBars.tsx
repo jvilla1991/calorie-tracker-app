@@ -7,7 +7,7 @@ import { parseLocalDate } from '../../utils/date'
 import { budgetOf, comma, isLogged, isOverGoal, kLabel, zeroTicks } from '../../utils/metrics'
 import { formatDuration, gapMs } from '../../utils/eatingWindow'
 
-const MONO = "'Space Mono', monospace"
+const MONO = "var(--font-display)"
 const H = 178          // chart height in px
 const PAD_L = 30       // room for the y-axis labels
 const PAD_R = 2
@@ -31,7 +31,6 @@ const readoutDate = (s: string) =>
   parseLocalDate(s)
     .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
     .replace(',', '')
-    .toUpperCase()
 
 /**
  * Daily calories as bars, with each day's budget (goal + exercise) drawn as a dashed tick
@@ -122,25 +121,25 @@ export default function CalorieBars({ days, prevDay = null, today, selected, onS
                 <>
                   <span>
                     FOOD <b className={isOverGoal(sel) ? 'over' : ''}>{comma(sel.calories)}</b>
-                    {' · '}<span className="ct-readout-ex">BURNED {comma(sel.exerciseCalories)}</span>
+                    {' · '}<span className="ct-readout-ex">Burned {comma(sel.exerciseCalories)}</span>
                   </span>
-                  {budgetOf(sel) > 0 && <span>BUDGET {comma(budgetOf(sel))}</span>}
+                  {budgetOf(sel) > 0 && <span>Budget {comma(budgetOf(sel))}</span>}
                 </>
               ) : (
                 <span>
-                  <b className={isOverGoal(sel) ? 'over' : ''}>{comma(sel.calories)} KCAL</b>
-                  {sel.goalCalories > 0 && <> · GOAL {comma(sel.goalCalories)}</>}
+                  <b className={isOverGoal(sel) ? 'over' : ''}>{comma(sel.calories)} kcal</b>
+                  {sel.goalCalories > 0 && <> · Goal {comma(sel.goalCalories)}</>}
                 </span>
               )}
               {selWindow !== null && (
                 <span>
-                  <span className="ct-readout-win">WINDOW {formatDuration(selWindow)}</span>
-                  {selFasted !== null && <> · FASTED {formatDuration(selFasted)}</>}
+                  <span className="ct-readout-win">Window {formatDuration(selWindow)}</span>
+                  {selFasted !== null && <> · Fasted {formatDuration(selFasted)}</>}
                 </span>
               )}
             </span>
             <button type="button" className="ct-readout-btn" onClick={() => navigate(`/diary/${sel.date}`)}>
-              Open day ›
+              Open day
             </button>
           </>
         ) : (

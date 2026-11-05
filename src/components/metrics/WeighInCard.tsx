@@ -30,7 +30,7 @@ export default function WeighInCard({ unit, saving, serverError, onLog }: Props)
     <form className="ct-card ct-metric-card ct-weighin-card" onSubmit={submit} noValidate>
       <div className="ct-weighin-head">
         <span className="ct-weighin-label">Weekly weigh-in</span>
-        <span className="ct-weighin-due">● DUE</span>
+        <span className="ct-weighin-due">Due</span>
       </div>
       <div className="ct-weighin-row">
         <div className="ct-in-suffix">
