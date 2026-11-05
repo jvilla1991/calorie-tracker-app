@@ -85,7 +85,7 @@ export default function MacroDonut({ split }: { split: MacroSplit | null }) {
               </text>
               <text
                 x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="central"
-                fill="var(--muted)" fontSize="7.5" fontWeight="700" letterSpacing="1.2"
+                fill="var(--muted)" fontSize="9" fontWeight="700" letterSpacing="1.2"
                 fontFamily="'Space Mono', monospace"
               >
                 KCAL/DAY
