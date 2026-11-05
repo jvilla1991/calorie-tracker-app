@@ -25,7 +25,8 @@ function scaleToP100(value: string, servingG: number): number | null {
 
 interface Props {
   mealLabel?: string
-  onAdd: (food: Food, grams: number) => void
+  /** Resolves once the food is saved; rejects if saving failed. */
+  onAdd: (food: Food, grams: number) => Promise<void>
   onClose: () => void
 }
 
@@ -131,9 +132,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   // ── One-tap re-log ────────────────────────────────────────────────────────
   // Logs a recent food at its last-used quantity without leaving the list, so
   // several foods can be logged in a row. The sheet stays open on purpose.
-  // onAdd is fire-and-forget (the parent owns the mutation), so a short per-row
-  // lock doubles as the "✓ logged" feedback window and blocks double taps.
+  // The per-row lock blocks double taps while saving and through the "✓ logged" window.
+  const [relogging, setRelogging] = useState<ReadonlySet<number>>(() => new Set())
   const [relogged, setRelogged] = useState<ReadonlySet<number>>(() => new Set())
+  const [relogError, setRelogError] = useState<string | null>(null)
   const relogLock = useRef(new Set<number>())
   const relogTimers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
   useEffect(() => {
@@ -141,18 +143,46 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
     return () => timers.forEach((t) => clearTimeout(t))
   }, [])
 
-  const quickRelog = (e: MouseEvent, entry: RecentFood) => {
+  const quickRelog = async (e: MouseEvent, entry: RecentFood) => {
     e.stopPropagation()
     const id = entry.food.id
     if (relogLock.current.has(id)) return
     relogLock.current.add(id)
-    onAdd(entry.food, entry.quantityGrams)
-    setRelogged((prev) => new Set(prev).add(id))
-    relogTimers.current.set(id, setTimeout(() => {
+    setRelogError(null)
+    setRelogging((prev) => new Set(prev).add(id))
+    try {
+      await onAdd(entry.food, entry.quantityGrams)
+      setRelogged((prev) => new Set(prev).add(id))
+      relogTimers.current.set(id, setTimeout(() => {
+        relogLock.current.delete(id)
+        relogTimers.current.delete(id)
+        setRelogged((prev) => { const next = new Set(prev); next.delete(id); return next })
+      }, RELOG_FEEDBACK_MS))
+    } catch {
       relogLock.current.delete(id)
-      relogTimers.current.delete(id)
-      setRelogged((prev) => { const next = new Set(prev); next.delete(id); return next })
-    }, RELOG_FEEDBACK_MS))
+      setRelogError(`Couldn't log ${entry.food.name}. Tap + to try again.`)
+    } finally {
+      setRelogging((prev) => { const next = new Set(prev); next.delete(id); return next })
+    }
+  }
+
+  // ── Saving from the amount screens ────────────────────────────────────────
+  // The sheet closes only after the save succeeds, so a failure keeps the entered amount.
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const saveAndClose = async (food: Food, grams: number) => {
+    if (saving) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await onAdd(food, grams)
+      handleClose()
+    } catch {
+      setSaveError(`Couldn't log ${food.name}. Try again.`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   // ── Recent-confirm state ──────────────────────────────────────────────────
@@ -211,6 +241,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   const renderRecentRow = (entry: RecentFood) => {
     const { food } = entry
     const done = relogged.has(food.id)
+    const pending = relogging.has(food.id)
     const qty = fmt1(entry.quantityGrams)
     return (
       <div className="ct-food ct-recent-row" key={food.id}>
@@ -230,10 +261,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           type="button"
           className={'ct-relog-btn' + (done ? ' done' : '')}
           onClick={(e) => quickRelog(e, entry)}
-          aria-disabled={done}
-          aria-label={(done ? 'Logged ' : 'Log ') + food.name + (done ? ', ' : ' again, ') + qty + 'g'}
+          aria-disabled={done || pending}
+          aria-label={(done ? 'Logged ' : pending ? 'Logging ' : 'Log ') + food.name + (done || pending ? ', ' : ' again, ') + qty + 'g'}
         >
-          <span className="ct-relog-ic" aria-hidden="true">{done ? '✓' : '+'}</span>
+          <span className="ct-relog-ic" aria-hidden="true">{done ? '✓' : pending ? '…' : '+'}</span>
         </button>
       </div>
     )
@@ -255,8 +286,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
     if (!selected) return
     const g = computeGrams()
     if (!g) return
-    onAdd(selected, g)
-    handleClose()
+    saveAndClose(selected, g)
   }
 
   // ── Barcode ───────────────────────────────────────────────────────────────
@@ -277,6 +307,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   })
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  // A food that was created but not logged, so a retry doesn't create it a second time.
+  // Editing the form means a different food, so the next save creates that one.
+  const createdFoodRef = useRef<Food | null>(null)
+  useEffect(() => { createdFoodRef.current = null }, [form, measureMode])
 
   const servingGrams = (): number => {
     const qty = parseFloat(form.servingQty)
@@ -312,21 +346,24 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
     setCreating(true)
     try {
-      const food = await createFood({
+      const food = createdFoodRef.current ?? await createFood({
         name: form.name.trim(), brand: form.brand.trim() || null, barcode: null,
         caloriesPer100g: cal100g, proteinPer100g: pro100g, carbsPer100g: carb100g,
         fatPer100g: fat100g, fiberPer100g: fib100g, servingSizeG: servSizeG,
       })
-      onAdd(food, servSizeG ?? 100)
+      createdFoodRef.current = food
+      await onAdd(food, servSizeG ?? 100)
       handleClose()
     } catch {
-      setCreateError('Failed to save — please try again')
+      setCreateError(createdFoodRef.current
+        ? `Saved ${createdFoodRef.current.name}, but couldn't log it. Try again.`
+        : 'Failed to save — please try again')
     } finally {
       setCreating(false)
     }
   }
 
-  const goBack = () => { setMode('pick'); setSelected(null); setPendingRecent(null); setScanError(null) }
+  const goBack = () => { setMode('pick'); setSelected(null); setPendingRecent(null); setScanError(null); setSaveError(null) }
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -361,6 +398,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
             </div>
 
             <div className="ct-pick-scroll" ref={scrollRef}>
+              {relogError && <div className="ct-error-msg" role="alert">{relogError}</div>}
               <button className="ct-create-row" onClick={() => setMode('create')}>
                 <span className="ct-create-ic">+</span>
                 <span>Create a new food{q.trim() ? ` "${q.trim()}"` : ''}</span>
@@ -433,6 +471,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
             </div>
 
             <div className="ct-form">
+              {saveError && <div className="ct-error-msg" role="alert">{saveError}</div>}
               {/* Food preview */}
               <div className="ct-portion-food">
                 <span className="ct-food-ident" style={{ width: 44, height: 44, fontSize: 14, flexShrink: 0 }}>
@@ -457,13 +496,11 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               <div className="ct-recent-section-label">Same as last time</div>
               <button
                 className="ct-same-amount-btn"
-                onClick={() => {
-                  onAdd(pendingRecent.food, pendingRecent.quantityGrams)
-                  handleClose()
-                }}
+                disabled={saving}
+                onClick={() => saveAndClose(pendingRecent.food, pendingRecent.quantityGrams)}
               >
                 <span className="ct-same-amount-qty">{fmt1(pendingRecent.quantityGrams)}g</span>
-                <span className="ct-same-amount-cap">Tap to log</span>
+                <span className="ct-same-amount-cap">{saving ? 'Saving…' : 'Tap to log'}</span>
               </button>
 
               <div className="ct-recent-divider">
@@ -507,15 +544,13 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
               <button
                 className="ct-save-btn"
-                disabled={!computeNewGrams()}
+                disabled={!computeNewGrams() || saving}
                 onClick={() => {
                   const g = computeNewGrams()
-                  if (!g) return
-                  onAdd(pendingRecent.food, g)
-                  handleClose()
+                  if (g) saveAndClose(pendingRecent.food, g)
                 }}
               >
-                Add to {mealLabel}
+                {saving ? 'Saving…' : `Add to ${mealLabel}`}
               </button>
             </div>
           </>
@@ -530,6 +565,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               <span style={{ width: 40 }} />
             </div>
             <div className="ct-form">
+              {saveError && <div className="ct-error-msg" role="alert">{saveError}</div>}
               <div className="ct-portion-food">
                 <span className="ct-food-ident" style={{ width: 44, height: 44, fontSize: 14, flexShrink: 0 }}>
                   {identOf(selected.name)}
@@ -580,8 +616,8 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 )}
               </div>
 
-              <button className="ct-save-btn" onClick={handleAdd} disabled={!computeGrams()}>
-                Add to {mealLabel}
+              <button className="ct-save-btn" onClick={handleAdd} disabled={!computeGrams() || saving}>
+                {saving ? 'Saving…' : `Add to ${mealLabel}`}
               </button>
             </div>
           </>
@@ -596,7 +632,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               <span style={{ width: 40 }} />
             </div>
             <div className="ct-form">
-              {createError && <div className="ct-error-msg">{createError}</div>}
+              {createError && <div className="ct-error-msg" role="alert">{createError}</div>}
               <div className="ct-field">
                 <label>Nutrition listed as</label>
                 <div className="ct-unit-seg" style={{ alignSelf: 'flex-start' }}>
