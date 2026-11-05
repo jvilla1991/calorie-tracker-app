@@ -1,62 +1,102 @@
-/* ── Instrument Cluster Design Tokens ──────────────────────────────────────── */
+/* â”€â”€ Market Day design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-/* Light theme (default) */
+/* Light theme */
 .ct-light-theme {
-  --bg:           #EFEFEA;
-  --bg2:          #E4E4DD;
-  --card:         #FBFBF8;
-  --ink:          #161614;
-  --muted:        #66665E;
-  --line:         #D7D7CE;
-  --accent:       #FF5A1F;
-  --accent-ink:   #161614;
-  --accent-soft:  #FFE7DC;
-  --accent-text:  #B8390A;
-  --ring-track:   #DEDED6;
-  --redline:      #E11D00;
-  --redline-text: #B81800;
-  --needle:       #161614;
-  --p:            #FF5A1F;
-  --p-text:       #B8390A;
-  --c:            #1A7CC2;
-  --c-text:       #14659F;
-  --window:       #23A455;
-  --f:            #6B7280;
-  --radius:       6px;
-  --radius-sm:    5px;
-  --shadow:       0 0 0 1.5px #161614;
-  --shadow-sm:    0 0 0 1px #D7D7CE;
+  --bg:           #F3F6EC;
+  --bg2:          #E8EDDF;
+  --card:         #FCFDF8;
+  --ink:          #17231C;
+  --muted:        #55625A;
+  --line:         #DCE2D3;
+  --accent:       #CE3A20;
+  --accent-ink:   #FFFFFF;
+  --accent-soft:  #FBE6DF;
+  --accent-text:  #B2321B;
+  --ring-track:   #E1E6D7;
+  --redline:      #C41E12;
+  --redline-text: #B01A0F;
+  --needle:       #17231C;
+  --p:            #CE3A20;
+  --p-text:       #B2321B;
+  --c:            #2A6DB8;
+  --c-text:       #1F5C9E;
+  --window:       #2C8C4B;
+  --f:            #8A5A00;
+  --radius:       14px;
+  --radius-sm:    10px;
+  --shadow:       0 0 0 1px #DCE2D3;
+  --shadow-sm:    0 0 0 1px #DCE2D3;
+  /* The day's summary field */
+  --field:        #0E3B2E;
+  --on-field:     #FFFFFF;
+  --on-field-2:   #C4DCCD;
+  --field-track:  #245A48;
+  /* One color per meal */
+  --m-breakfast:  #F2A71B;
+  --m-breakfast-ink: #17231C;
+  --m-lunch:      #CE3A20;
+  --m-lunch-ink:  #FFFFFF;
+  --m-dinner:     #6E3189;
+  --m-dinner-bar: #A862CC;
+  --m-dinner-ink: #FFFFFF;
+  --m-snack:      #3FA65F;
+  --m-snack-ink:  #17231C;
+  --m-exercise:   #2A6DB8;
+  --m-exercise-ink: #FFFFFF;
+  --m-breakfast-text: #7A5200;
+  --m-lunch-text: #B2321B;
+  --m-dinner-text: #6E3189;
+  --m-snack-text: #1F6B3A;
 }
 
 /* Dark theme */
 .ct-dark-theme {
-  --bg:           #0D0E11;
-  --bg2:          #181A1F;
-  --card:         #141519;
-  --ink:          #EDEFF3;
-  --muted:        #868C97;
-  --line:         #262A31;
-  --accent:       #FF7A1A;
-  --accent-ink:   #0D0E11;
-  --accent-soft:  rgba(255, 122, 26, 0.16);
-  --accent-text:  #FF7A1A;
-  --ring-track:   #23262E;
-  --redline:      #FF3B30;
-  --redline-text: #FF3B30;
-  --needle:       #EDEFF3;
-  --p:            #FF7A1A;
-  --p-text:       #FF7A1A;
-  --c:            #36C5F0;
-  --c-text:       #36C5F0;
-  --window:       #3DDC84;
-  --f:            #9AA3B2;
-  --radius:       7px;
-  --radius-sm:    6px;
-  --shadow:       0 0 0 1px #262A31;
-  --shadow-sm:    0 0 0 1px #20242B;
+  --bg:           #150E1A;
+  --bg2:          #241A2C;
+  --card:         #1E1525;
+  --ink:          #F4EDF6;
+  --muted:        #AC9BB4;
+  --line:         #30243A;
+  --accent:       #F4664E;
+  --accent-ink:   #150E1A;
+  --accent-soft:  rgba(244, 102, 78, 0.16);
+  --accent-text:  #FF8A75;
+  --ring-track:   #30243A;
+  --redline:      #FF5C4D;
+  --redline-text: #FF7A6E;
+  --needle:       #F4EDF6;
+  --p:            #F4664E;
+  --p-text:       #FF8A75;
+  --c:            #6BAAEB;
+  --c-text:       #8ABDF0;
+  --window:       #5CC37B;
+  --f:            #E0B35A;
+  --radius:       14px;
+  --radius-sm:    10px;
+  --shadow:       0 0 0 1px #30243A;
+  --shadow-sm:    0 0 0 1px #30243A;
+  --field:        #2B1436;
+  --on-field:     #FFFFFF;
+  --on-field-2:   #D5C3DE;
+  --field-track:  #46265A;
+  --m-breakfast:  #F8B93D;
+  --m-breakfast-ink: #150E1A;
+  --m-lunch:      #F4664E;
+  --m-lunch-ink:  #150E1A;
+  --m-dinner:     #B98BD1;
+  --m-dinner-bar: #B98BD1;
+  --m-dinner-ink: #150E1A;
+  --m-snack:      #5CC37B;
+  --m-snack-ink:  #150E1A;
+  --m-exercise:   #6BAAEB;
+  --m-exercise-ink: #150E1A;
+  --m-breakfast-text: #F8B93D;
+  --m-lunch-text: #FF8A75;
+  --m-dinner-text: #CDA6E0;
+  --m-snack-text: #5CC37B;
 }
 
-/* ── App shell ──────────────────────────────────────────────────────────────── */
+/* â”€â”€ App shell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 * { -webkit-tap-highlight-color: transparent; }
 
@@ -66,8 +106,10 @@
   color: var(--ink);
   background: var(--bg);
   font-family: 'Barlow', system-ui, sans-serif;
-  --font-display: 'Space Mono', ui-monospace, monospace;
+  --font-display: 'Bricolage Grotesque', 'Barlow', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
+.ct-app ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 
 .ct-scroll {
   min-height: 100dvh;
@@ -93,106 +135,292 @@
   .ct-swipe-next, .ct-swipe-prev { animation: none; }
 }
 
-/* ── Header ─────────────────────────────────────────────────────────────────── */
+/* â”€â”€ Diary shell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-.ct-top {
-  padding: 10px 4px 14px;
+.ct-m-breakfast { --meal: var(--m-breakfast); --meal-ink: var(--m-breakfast-ink); }
+.ct-m-lunch     { --meal: var(--m-lunch);     --meal-ink: var(--m-lunch-ink); }
+.ct-m-dinner    { --meal: var(--m-dinner);    --meal-ink: var(--m-dinner-ink); --meal-bar: var(--m-dinner-bar); }
+.ct-m-snack     { --meal: var(--m-snack);     --meal-ink: var(--m-snack-ink); }
+.ct-m-exercise  { --meal: var(--m-exercise);  --meal-ink: var(--m-exercise-ink); }
+
+/* 2: the food sheet takes the color of the meal it logs into. */
+.ct-m-breakfast { --meal-text: var(--m-breakfast-text); }
+.ct-m-lunch     { --meal-text: var(--m-lunch-text); }
+.ct-m-dinner    { --meal-text: var(--m-dinner-text); }
+.ct-m-snack     { --meal-text: var(--m-snack-text); }
+.ct-meal-accent {
+  --accent: var(--meal);
+  --accent-ink: var(--meal-ink);
+  --accent-soft: color-mix(in srgb, var(--meal) 16%, var(--card));
+  --accent-text: var(--meal-text);
 }
-.ct-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-}
-.ct-greet {
-  min-width: 0;
+
+/* The Diary runs edge to edge: the field fills the phone, the log sets its own gutters. */
+.ct-scroll-diary { padding: 0; }
+.ct-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -1px;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
-.ct-date {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 2px;
-  font-weight: 600;
-  white-space: nowrap;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ct-top-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.ct-cluster-badge {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  padding: 5px 9px;
-  border-radius: 5px;
-  cursor: pointer;
-  border: none;
-  transition: opacity .15s;
-}
-.ct-cluster-badge:hover { opacity: 0.8; }
-.ct-cluster-badge { white-space: nowrap; display: inline-block; }
 
-/* Past dates: "TODAY ›" jump-back chip in the badge's spot. The button is a 44px-tall
-   hit area (negative margin keeps the header height unchanged); the badge is the visual. */
-.ct-today-chip {
-  border: none;
-  background: none;
-  padding: 11px 0;
-  margin: -11px 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+.ct-dayfield {
+  --focus: var(--on-field);
+  padding: env(safe-area-inset-top) 20px 4px;
+  border-radius: 0 0 26px 26px;
+  background: var(--field);
+  color: var(--on-field);
 }
-.ct-today-chip:focus-visible { outline: none; }
-.ct-today-chip:focus-visible .ct-cluster-badge { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ct-dayfield button:focus-visible { outline: 2px solid var(--on-field); outline-offset: 2px; border-radius: 6px; }
 
-/* Date navigation */
 .ct-date-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  min-height: 48px;
+  margin: 0 -12px;
 }
-/* 44×44 hit area around a compact glyph: the negative margin cancels the extra size
-   so the row looks exactly as before. position:relative keeps the hit area on top
-   of the neighbouring date text. */
+.ct-date {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ct-date-end { display: flex; align-items: center; }
 .ct-date-btn {
-  position: relative;
-  border: none;
-  background: none;
-  color: var(--muted);
-  font-family: var(--font-display);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 0;
-  width: 44px;
-  height: 44px;
-  margin: -14px -15px;
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--on-field-2);
+  cursor: pointer;
   transition: color .15s;
-  flex-shrink: 0;
 }
-.ct-date-btn:hover { color: var(--ink); }
-.ct-date-btn:disabled { opacity: 0.3; cursor: default; }
+.ct-date-btn:hover { color: var(--on-field); }
+.ct-date-btn:disabled { opacity: 0.35; cursor: default; }
+.ct-today-chip {
+  min-height: 44px;
+  padding: 0 4px 0 8px;
+  border: none;
+  background: none;
+  color: var(--on-field);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 
-/* ── Cards ──────────────────────────────────────────────────────────────────── */
+/* â”€â”€ Day summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.ct-hero-loading {
+  display: grid;
+  place-items: center;
+  height: 236px;
+  color: var(--on-field-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.ct-hero-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+.ct-hero-num {
+  font-family: var(--font-display);
+  font-size: clamp(60px, 19.5vw, 76px);
+  font-weight: 800;
+  font-variant-numeric: lining-nums proportional-nums;
+  line-height: .92;
+  letter-spacing: -.02em;
+}
+.ct-hero.over .ct-hero-num, .ct-hero.over .ct-hero-cap { color: var(--m-breakfast); }
+.ct-hero-cap {
+  margin-top: 4px;
+  color: var(--on-field-2);
+  font-size: 15px;
+  font-weight: 600;
+}
+.ct-hero-side {
+  flex: none;
+  padding-bottom: 2px;
+  color: var(--on-field-2);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: right;
+  white-space: nowrap;
+}
+.ct-hero-side b { color: var(--on-field); font-size: 15px; font-weight: 700; }
+.ct-hero-goal {
+  min-height: 44px;
+  margin: -12px 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--on-field-2);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ct-hero-goal:hover { color: var(--on-field); }
+
+/* Budget bar: meal segments over visible 100-kcal cells. */
+.ct-bbar {
+  position: relative;
+  display: block;
+  height: 22px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--field-track);
+}
+.ct-bbar-meals { position: absolute; inset: 0; display: flex; }
+.ct-bbar-seg {
+  flex: 0 0 0;
+  background: var(--meal-bar, var(--meal));
+  transition: flex-basis .7s cubic-bezier(.16,1,.3,1);
+}
+.ct-bbar-allow { position: absolute; top: 0; bottom: 0; background: var(--m-exercise); opacity: .45; }
+.ct-bbar-cells {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent calc(100% - 1.5px), var(--field) 0) 0 0 / var(--ct-cell) 100%;
+  opacity: .5;
+}
+.ct-bbar-over {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--redline) 0 5px, #FFFFFF 5px 7px);
+}
+.ct-bbar-end { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: var(--on-field); }
+.ct-bbar-slim { height: 8px; margin-top: 7px; border-radius: 3px; }
+.ct-bbar-slim .ct-bbar-cells { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ct-bbar-seg { transition: none; }
+}
+
+.ct-hm-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+.ct-hm-label { color: var(--on-field-2); font-size: 13px; font-weight: 600; }
+.ct-hm-val { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.ct-hm-val span { color: var(--on-field-2); font-size: 13px; font-weight: 500; }
+.ct-hm-bar { height: 4px; margin-top: 5px; overflow: hidden; border-radius: 2px; background: var(--field-track); }
+.ct-hm-bar span { display: block; height: 100%; background: var(--on-field); transition: width .7s cubic-bezier(.16,1,.3,1); }
+.ct-hm.over .ct-hm-bar span { background: var(--m-breakfast); }
+.ct-hm.over .ct-hm-val { color: var(--m-breakfast); }
+
+/* Eating window: one line in the field. */
+.ct-ewrow { margin-top: 10px; border-top: 1px solid var(--field-track); }
+.ct-ewrow-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ct-ewrow-plain { min-width: 0; color: var(--on-field-2); }
+.ct-ewrow-text {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--on-field-2);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ct-ew-go {
+  flex: none;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--on-field);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ct-ew-go:disabled { opacity: .6; cursor: default; }
+.ct-ewrow-err { padding-bottom: 10px; color: var(--on-field); font-size: 13px; font-weight: 600; }
+
+/* The next meal, docked above the tab bar. */
+.ct-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom) + 10px);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  max-width: 398px;
+  height: 52px;
+  margin: 0 auto;
+  border: none;
+  border-radius: 26px;
+  background: var(--meal);
+  color: var(--meal-ink);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(0,0,0,.28);
+  cursor: pointer;
+  transition: transform .15s, filter .15s, background .3s;
+}
+.ct-dock:hover { filter: brightness(1.06); }
+.ct-dock:active { transform: scale(.98); }
+.ct-dock:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ct-tabbed:has(.ct-dock) .ct-toast-region {
+  bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom) + 72px);
+}
+
+/* Keeps list content out of the gap between the dock and the tab bar. */
+.ct-dock-tray {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 34;
+  height: 84px;
+  background: linear-gradient(to bottom, transparent, var(--bg) 22px);
+  pointer-events: none;
+}
+
+/* The log */
+.ct-daylog { padding: 6px 20px 0; }
+.ct-daylog .ct-load-notice { margin: 10px 0 2px; }
+
+/* â”€â”€ Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-card {
   background: var(--card);
@@ -200,215 +428,8 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ── Gauge hero ─────────────────────────────────────────────────────────────── */
+/* â”€â”€ Section heads (Metrics, Profile) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-.ct-gauge-card {
-  padding: 8px 12px 12px;
-  margin-bottom: 13px;
-  box-shadow: var(--shadow);
-}
-.ct-gauge-wrap { position: relative; }
-.ct-gauge-prog { transition: none; }
-.ct-needle-g { transition: none; }
-.ct-dial-needle { transition: all .6s cubic-bezier(.2,.85,.25,1); }
-
-.ct-gauge-unit {
-  position: absolute;
-  left: 50%;
-  top: 76%;
-  transform: translateX(-50%);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  pointer-events: none;
-}
-
-/* LCD panel */
-.ct-lcd {
-  display: flex;
-  align-items: stretch;
-  margin-top: 14px;
-  background: var(--bg2);
-  border-radius: var(--radius-sm);
-  padding: 12px 8px;
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-.ct-lcd-cell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 0 4px;
-  min-width: 0;
-}
-.ct-lcd-k {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-}
-.ct-lcd-unit {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-}
-.ct-lcd-num {
-  font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: 0.5px;
-  line-height: 1;
-}
-.ct-lcd-num.over { color: var(--redline-text); }
-.ct-lcd-cap {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-/* On the narrowest phones the goal caption wraps rather than running into the divider. */
-@media (max-width: 340px) {
-  .ct-lcd-cap { white-space: normal; text-align: center; line-height: 1.35; }
-}
-/* Tappable goal caption: looks like the caption text, but with a ≥44px-tall hit
-   area (padding cancelled by negative margin so the LCD layout doesn't move). */
-.ct-lcd-goal {
-  display: inline-block;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 16px 8px;
-  margin: -16px -8px;
-  text-decoration: underline dotted;
-  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
-  text-underline-offset: 3px;
-  transition: color .15s;
-}
-.ct-lcd-goal:hover { color: var(--ink); }
-.ct-lcd-goal:focus-visible { outline: none; color: var(--accent-text); }
-.ct-lcd-goal-arrow {
-  display: inline-block;
-  margin-left: 3px;
-  color: var(--accent-text);
-  text-decoration: none;
-}
-.ct-lcd-div {
-  width: 1px;
-  background: var(--line);
-  margin: 3px 0;
-}
-
-/* Odometer */
-.ct-odo {
-  display: inline-flex;
-  align-items: stretch;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 30px;
-  line-height: 1;
-  color: var(--ink);
-  letter-spacing: 1px;
-}
-.ct-odo-sep {
-  display: inline-block;
-  width: 0.34em;
-}
-.ct-reel {
-  display: inline-block;
-  height: 1em;
-  overflow: hidden;
-  width: 0.62em;
-}
-.ct-reel-col {
-  display: flex;
-  flex-direction: column;
-  transition: transform .9s cubic-bezier(.2,.85,.25,1);
-  will-change: transform;
-}
-.ct-reel-d {
-  height: 1em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Dark glow effects */
-.ct-dark-theme .ct-odo,
-.ct-dark-theme .ct-lcd-num {
-  text-shadow: 0 0 14px rgba(255,122,26,0.3);
-}
-.ct-dark-theme .ct-needle-g line {
-  filter: drop-shadow(0 0 5px rgba(255,122,26,0.65));
-}
-.ct-dark-theme .ct-gauge-prog {
-  filter: drop-shadow(0 0 6px rgba(255,122,26,0.5));
-}
-.ct-dark-theme .ct-dial-needle {
-  filter: drop-shadow(0 0 3px rgba(255,122,26,0.5));
-}
-
-/* ── Macro dials ────────────────────────────────────────────────────────────── */
-
-.ct-dials {
-  display: flex;
-  align-items: stretch;
-  padding: 14px 6px 12px;
-  margin-bottom: 13px;
-}
-.ct-dial {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  padding: 0 2px;
-}
-.ct-dials-div {
-  width: 1px;
-  background: var(--line);
-  margin: 6px 0;
-}
-.ct-dial-val {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  margin-top: -2px;
-}
-.ct-dial-val span {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 400;
-}
-.ct-dial-label {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-top: 2px;
-}
-
-/* ── Meal cards ─────────────────────────────────────────────────────────────── */
-
-.ct-meals { display: flex; flex-direction: column; gap: 12px; }
-.ct-meal {
-  padding: 13px 15px 11px;
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-}
-.ct-meal-head,
 .ct-section-head {
   display: flex;
   justify-content: space-between;
@@ -417,96 +438,140 @@
   padding-bottom: 9px;
   margin-bottom: 4px;
 }
-.ct-meal-title,
 .ct-section-title {
   font-family: var(--font-display);
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 1.6px;
+  letter-spacing: -.01em;
 }
-.ct-meal-kcal {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.5px;
-}
-.ct-meal-list { display: flex; flex-direction: column; }
-.ct-item {
+
+/* â”€â”€ Meals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+.ct-meals { display: flex; flex-direction: column; gap: 10px; }
+.ct-meal-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
+  gap: 10px;
+  min-height: 52px;
 }
-.ct-item:last-child { border-bottom: none; }
-.ct-item-ident {
-  font-family: var(--font-display);
-  font-weight: 700;
-  width: 30px;
-  height: 30px;
-  font-size: 11px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  letter-spacing: 0.5px;
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.ct-item-name {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 600;
+.ct-meal-sw { flex: none; width: 12px; height: 12px; border-radius: 4px; background: var(--meal); }
+.ct-meal-title {
+  margin: 0;
   color: var(--ink);
-  letter-spacing: -0.1px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ct-item-kcal {
   font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -.015em;
+  line-height: 1.1;
 }
-/* 44×44 hit area; the negative margin keeps the row's layout as it was (≈21px wide).
-   The round hover chip lives on the inner span. */
-.ct-item-x {
+.ct-meal-more {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -8px;
+  padding: 0;
   border: none;
+  border-radius: 50%;
   background: none;
   color: var(--muted);
   cursor: pointer;
-  padding: 0;
+  transition: color .15s;
+}
+.ct-meal-more:hover, .ct-meal-more[aria-expanded="true"] { color: var(--ink); }
+.ct-meal-kcal {
+  margin-left: auto;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ct-meal-add {
+  flex: none;
+  display: grid;
+  place-items: center;
   width: 44px;
   height: 44px;
-  margin: -7px -14px -7px -9px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.ct-meal-add span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--meal);
+  color: var(--meal-ink);
+  transition: transform .15s, filter .15s;
+}
+.ct-meal-add:hover span { filter: brightness(1.08); }
+.ct-meal-add:active span { transform: scale(.92); }
+.ct-meal-add:focus-visible, .ct-meal-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.ct-meal-tools { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 10px 22px; }
+.ct-meal-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.ct-meal-tool:hover { border-color: var(--muted); }
+.ct-meal-tool:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ct-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  opacity: 0.5;
-  transition: .15s;
-  flex-shrink: 0;
+  gap: 10px;
+  min-height: 40px;
+  padding-left: 22px;
+  border-top: 1px solid var(--line);
 }
-.ct-item-x-ic {
-  display: flex;
-  padding: 4px;
-  border-radius: 50%;
-  transition: .15s;
+.ct-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.ct-item-x:hover { opacity: 1; color: var(--accent-text); }
-.ct-item-x:hover .ct-item-x-ic { background: var(--accent-soft); }
-.ct-item-x:focus-visible { outline: none; opacity: 1; }
-.ct-item-x:focus-visible .ct-item-x-ic { outline: 2px solid var(--accent); }
+.ct-item-kcal { flex: none; color: var(--ink); font-size: 15px; font-weight: 600; }
+.ct-m-exercise .ct-item-kcal, .ct-m-exercise .ct-meal-kcal { color: var(--c-text); }
+.ct-item-est .ct-item-name { color: var(--muted); }
+.ct-item-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -2px 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color .15s;
+}
+.ct-item-x:hover { color: var(--accent-text); }
+.ct-item-x:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 
-/* ── Undo toast ─────────────────────────────────────────────────────────────── */
+/* â”€â”€ Undo toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* Sits just above the tab bar, inside the 430px column. z-index 45: over the tab bar
    (40) and readout strip (30), under sheet scrims (50). */
@@ -547,7 +612,6 @@
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -559,14 +623,13 @@
   border: none;
   background: none;
   color: var(--accent-text);
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
+.ct-light-theme .ct-toast-undo { color: #FFB4A3; }
 .ct-toast-undo:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 @keyframes ct-toast-in { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
@@ -578,9 +641,9 @@
   border: 1.5px dashed var(--line);
   background: none;
   color: var(--accent-text);
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 12px;
   padding: 9px;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -590,55 +653,17 @@
   gap: 6px;
   transition: .15s;
   white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
 }
 .ct-add-btn:hover { background: var(--accent-soft); border-color: transparent; }
 .ct-add-btn:disabled { opacity: 0.5; cursor: default; }
 .ct-add-plus { font-size: 16px; line-height: 1; }
 .ct-footspace { height: 28px; }
+.ct-scroll-diary .ct-footspace { height: 84px; }
 
-/* Empty meal: title + "+ LOG" on one compact row. The button is a 44px-tall hit
-   area; the chip inside is the visual. */
-.ct-meal-empty {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 9px 4px 15px;
-}
-.ct-log-btn {
-  min-height: 44px;
-  border: none;
-  background: none;
-  padding: 0 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-.ct-log-chip {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  padding: 6px 11px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  transition: background .15s, color .15s;
-}
-.ct-log-btn:hover .ct-log-chip { background: var(--accent); color: var(--accent-ink); }
-.ct-log-btn:disabled { opacity: 0.5; cursor: default; }
-.ct-log-btn:focus-visible { outline: none; }
-.ct-log-btn:focus-visible .ct-log-chip { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* â”€â”€ Collapsing readout strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-/* ── Collapsing readout strip ───────────────────────────────────────────────── */
-
-/* z-index 30: above page content and sticky page headers (10), below the tab bar (40,
-   which never overlaps it anyway) and the sheet scrims (50) so an open sheet covers it. */
+/* z-index 30: above page content and sticky page headers (10), below the dock (35), the
+   tab bar (40) and the sheet scrims (50) so an open sheet covers it. */
 .ct-strip {
   position: fixed;
   top: 0;
@@ -650,11 +675,11 @@
   max-width: 430px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding: calc(8px + env(safe-area-inset-top)) 20px 9px;
-  background: var(--card);
+  padding: calc(8px + env(safe-area-inset-top)) 20px 10px;
   border: none;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
+  border-radius: 0 0 16px 16px;
+  background: var(--field);
+  color: var(--on-field);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -663,80 +688,24 @@
   pointer-events: none;
   transition: transform .2s ease, opacity .2s ease;
 }
-.ct-strip.show {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-.ct-strip:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ct-strip.show { opacity: 1; transform: none; pointer-events: auto; }
+.ct-strip:focus-visible { outline: 2px solid var(--on-field); outline-offset: -3px; }
 @media (prefers-reduced-motion: reduce) {
   .ct-strip { transform: none; transition: none; }
 }
-.ct-strip-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-}
+.ct-strip-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ct-strip-k {
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: lining-nums proportional-nums;
   line-height: 1;
-  letter-spacing: 0.5px;
-  color: var(--ink);
 }
-.ct-strip-unit {
-  margin-left: 5px;
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 1px;
-}
-.ct-strip-left {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.3px;
-  color: var(--accent-text);
-  white-space: nowrap;
-}
-.ct-strip.over .ct-strip-left { color: var(--redline-text); }
-.ct-strip-bar {
-  display: block;
-  height: 4px;
-  margin: 8px 0 7px;
-  border-radius: 2px;
-  background: var(--ring-track);
-  overflow: hidden;
-}
-.ct-strip-fill {
-  display: block;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--accent);
-  transition: width .4s ease;
-}
-.ct-strip.over .ct-strip-fill { background: var(--redline); }
-.ct-strip-macros {
-  display: flex;
-  gap: 16px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-.ct-strip-target {
-  color: var(--muted);
-  font-weight: 400;
-  font-size: 11px;
-}
-.ct-dark-theme .ct-strip-k { text-shadow: 0 0 14px rgba(255,122,26,0.3); }
-.ct-dark-theme .ct-strip-fill { box-shadow: 0 0 6px rgba(255,122,26,0.5); }
-.ct-dark-theme .ct-strip.over .ct-strip-fill { box-shadow: none; }
+.ct-strip-unit { margin-left: 6px; color: var(--on-field-2); font-family: 'Barlow', system-ui, sans-serif; font-size: 13px; font-weight: 600; }
+.ct-strip-macros { display: flex; gap: 12px; color: var(--on-field-2); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.ct-strip-macros b { color: var(--on-field); font-weight: 700; }
 
-/* ── Add sheet ──────────────────────────────────────────────────────────────── */
+/* â”€â”€ Add sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-sheet-scrim {
   position: fixed;
@@ -806,6 +775,9 @@
   cursor: pointer;
 }
 .ct-sheet-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   border: none;
   background: none;
   color: var(--accent-text);
@@ -851,14 +823,11 @@
 }
 .ct-pick-scroll::-webkit-scrollbar { width: 0; }
 .ct-pick-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   color: var(--muted);
   margin: 12px 4px 2px;
-  font-family: var(--font-display);
-  letter-spacing: 1.5px;
+  font-family: 'Barlow', system-ui, sans-serif;
 }
 .ct-create-row {
   width: 100%;
@@ -918,7 +887,6 @@
   flex-shrink: 0;
   color: var(--accent-text);
   background: var(--accent-soft);
-  letter-spacing: 0.5px;
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .ct-food:hover .ct-food-ident { background: var(--card); }
@@ -940,7 +908,6 @@
   font-size: 11px;
   color: var(--muted);
   font-weight: 400;
-  letter-spacing: 0.3px;
 }
 .ct-food-kcal {
   font-family: var(--font-display);
@@ -954,11 +921,9 @@
   flex-shrink: 0;
 }
 .ct-food-k {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 .ct-empty {
   padding: 22px;
@@ -968,7 +933,7 @@
   font-weight: 600;
 }
 
-/* ── Recent foods ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Recent foods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* Last-used quantity pill shown on recent food rows */
 .ct-recent-qty {
@@ -980,7 +945,6 @@
   padding: 4px 8px;
   border-radius: 4px;
   flex-shrink: 0;
-  letter-spacing: 0.3px;
 }
 
 /* Recent / History row: body button (opens recent-confirm) + trailing re-log button.
@@ -1012,7 +976,7 @@
   text-overflow: ellipsis;
 }
 
-/* One-tap re-log: 44×44 hit area, small accent square inside */
+/* One-tap re-log: 44Ã—44 hit area, small accent square inside */
 .ct-relog-btn {
   width: 44px;
   height: 44px;
@@ -1062,7 +1026,6 @@
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 2px;
   color: var(--muted);
   border: none;
   background: none;
@@ -1071,11 +1034,9 @@
 
 /* Section heading inside recent-confirm */
 .ct-recent-section-label {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
   color: var(--muted);
   margin: 4px 0 8px;
 }
@@ -1106,11 +1067,9 @@
 }
 
 .ct-same-amount-cap {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
   color: var(--accent-ink);
   opacity: 0.75;
 }
@@ -1130,11 +1089,9 @@
   background: var(--line);
 }
 .ct-recent-divider span {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -1156,7 +1113,6 @@
   color: var(--muted);
   padding-left: 2px;
   font-family: var(--font-display);
-  letter-spacing: 0.3px;
 }
 .ct-field-row { display: flex; gap: 10px; }
 .ct-field-row .ct-field { flex: 1; }
@@ -1190,7 +1146,7 @@
 }
 .ct-save-btn:disabled { opacity: 0.4; cursor: default; }
 
-/* ── Inner-page layout ──────────────────────────────────────────────────────── */
+/* â”€â”€ Inner-page layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-page {
   min-height: 100dvh;
@@ -1226,15 +1182,13 @@
 
 .ct-page-title {
   font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.6px;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--ink);
   flex: 1;
 }
 
-/* ── Login ──────────────────────────────────────────────────────────────────── */
+/* â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-login {
   min-height: 100dvh;
@@ -1273,11 +1227,9 @@
 }
 
 .ct-field-label {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   color: var(--muted);
   margin-bottom: 6px;
   display: block;
@@ -1290,10 +1242,9 @@
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--redline) 10%, transparent);
-  letter-spacing: 0.2px;
 }
 
-/* ── Failed-load notice on the diary ────────────────────────────────────────── */
+/* â”€â”€ Failed-load notice on the diary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-load-notice {
   display: flex;
@@ -1320,7 +1271,7 @@
 }
 .ct-load-notice-retry:disabled { opacity: 0.6; cursor: default; }
 
-/* ── Scan button in search bar ──────────────────────────────────────────────── */
+/* â”€â”€ Scan button in search bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-scan-btn {
   border: none;
@@ -1335,7 +1286,7 @@
 }
 .ct-scan-btn:hover { color: var(--ink); }
 
-/* ── Portion selector (food detail in sheet) ────────────────────────────────── */
+/* â”€â”€ Portion selector (food detail in sheet) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-portion-food {
   display: flex;
@@ -1359,29 +1310,27 @@
 }
 
 .ct-unit-btn {
+  text-transform: capitalize;
   border: none;
   background: none;
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted);
   padding: 0 12px;
   height: 44px;
   cursor: pointer;
   transition: .15s;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 .ct-unit-btn + .ct-unit-btn { border-left: 1px solid var(--line); }
 .ct-unit-btn.active { background: var(--accent); color: var(--accent-ink); }
 
-/* ── Goals page ─────────────────────────────────────────────────────────────── */
+/* â”€â”€ Goals page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-goals-note {
   font-family: var(--font-display);
   font-size: 12px;
   color: var(--muted);
-  letter-spacing: 0.5px;
   padding: 2px 0 6px;
 }
 
@@ -1401,11 +1350,9 @@
 }
 
 .ct-goal-field-label {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   color: var(--muted);
 }
 
@@ -1413,10 +1360,9 @@
   font-family: var(--font-display);
   font-size: 11px;
   color: var(--muted);
-  letter-spacing: 1px;
 }
 
-/* ── Bottom tab bar ─────────────────────────────────────────────────────────── */
+/* â”€â”€ Bottom tab bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-app { --tabbar-h: 58px; }
 
@@ -1436,9 +1382,7 @@
   bottom: 0;
   z-index: 40; /* above sticky page headers (10), below sheet scrims (50) */
   display: flex;
-  max-width: 430px;
-  margin: 0 auto;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 0 max(0px, calc(50vw - 215px)) env(safe-area-inset-bottom);
   box-sizing: border-box;
   background: var(--card);
   border-top: 1px solid var(--line);
@@ -1457,7 +1401,7 @@
   transition: color .15s;
 }
 .ct-tab:hover { color: var(--ink); }
-.ct-tab.active { color: var(--accent-text); }
+.ct-tab.active { color: var(--ink); }
 .ct-tab.active::before {
   content: '';
   position: absolute;
@@ -1466,22 +1410,16 @@
   width: 28px;
   height: 2px;
   transform: translateX(-50%);
-  background: var(--accent);
+  background: var(--ink);
   border-radius: 0 0 2px 2px;
 }
 .ct-tab-label {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
   line-height: 1;
 }
-.ct-dark-theme .ct-tab.active svg {
-  filter: drop-shadow(0 0 4px rgba(255,122,26,0.45));
-}
 
-/* ── Empty state (Metrics placeholder) ──────────────────────────────────────── */
+/* â”€â”€ Empty state (Metrics placeholder) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-empty-state {
   display: flex;
@@ -1494,11 +1432,9 @@
 }
 .ct-empty-state svg { margin-bottom: 4px; color: var(--accent-text); }
 .ct-empty-state-cap {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.6px;
   color: var(--ink);
 }
 .ct-empty-state-text {
@@ -1507,7 +1443,7 @@
   color: var(--muted);
 }
 
-/* ── Profile page ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Profile page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-sections { display: flex; flex-direction: column; gap: 12px; }
 .ct-section {
@@ -1528,11 +1464,9 @@
 }
 .ct-pref-row:last-child { border-bottom: none; padding-bottom: 0; }
 .ct-pref-label {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   color: var(--muted);
 }
 .ct-pref-btn { min-width: 60px; }
@@ -1544,11 +1478,9 @@
   border: 1.5px solid var(--redline);
   background: none;
   color: var(--redline-text);
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background .15s;
@@ -1571,11 +1503,9 @@
   flex: 1;
   min-height: 48px;
   border-radius: var(--radius-sm);
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
   cursor: pointer;
   transition: .15s;
 }
@@ -1593,7 +1523,7 @@
 .ct-sheet-cancel:disabled,
 .ct-sheet-danger:disabled { opacity: 0.5; cursor: default; }
 
-/* ── Metrics page ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Metrics page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-metric-card {
   padding: 13px 15px 15px;
@@ -1607,11 +1537,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -1636,7 +1564,6 @@
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.6px;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1648,11 +1575,9 @@
 .ct-readout-text b { color: var(--ink); font-weight: 700; }
 .ct-readout-text b.over { color: var(--redline-text); }
 .ct-readout-hint {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
   color: var(--muted);
 }
 .ct-readout-btn {
@@ -1663,11 +1588,9 @@
   border: none;
   background: none;
   color: var(--accent-text);
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
   border-radius: var(--radius-sm);
@@ -1679,9 +1602,8 @@
 .ct-chart-wrap svg { overflow: visible; }
 .ct-bar-hit { cursor: pointer; outline: none; }
 .ct-bar-hit:focus-visible { fill: color-mix(in srgb, var(--accent) 12%, transparent); }
-.ct-dark-theme .ct-bar { filter: drop-shadow(0 0 3px rgba(255,122,26,0.35)); }
 
-/* Range control: WEEK | MONTH, then the ‹ period › row */
+/* Range control: WEEK | MONTH, then the â€¹ period â€º row */
 .ct-range { display: flex; flex-direction: column; gap: 2px; }
 .ct-range-seg { width: 100%; background: var(--card); }
 .ct-range-seg .ct-unit-btn { flex: 1; font-size: 11.5px; letter-spacing: 1.6px; }
@@ -1709,18 +1631,16 @@
 .ct-period-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
 .ct-period-label {
   min-width: 0;
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Stat tiles: 2×2 LCD readouts */
+/* Stat tiles: 2Ã—2 LCD readouts */
 .ct-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1738,11 +1658,9 @@
 }
 .ct-stat-label,
 .ct-stat-cap {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1753,15 +1671,11 @@
   font-size: 22px;
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: 0.3px;
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ct-dark-theme .ct-stat-num,
-.ct-dark-theme .ct-weight-now { text-shadow: 0 0 14px rgba(255,122,26,0.3); }
-
 /* Macro donut */
 .ct-donut-row {
   display: flex;
@@ -1788,11 +1702,9 @@
 }
 .ct-legend-sw { width: 8px; height: 8px; border-radius: 2px; }
 .ct-legend-label {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.3px;
-  text-transform: uppercase;
   color: var(--muted);
 }
 .ct-legend-val {
@@ -1822,7 +1734,6 @@
   font-family: var(--font-display);
   font-size: 11px;
   color: var(--muted);
-  letter-spacing: 2px;
 }
 .ct-metric-loading-lg { min-height: 260px; }
 .ct-metric-error {
@@ -1842,11 +1753,9 @@
   border: 1.5px solid var(--accent);
   background: none;
   color: var(--accent-text);
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
@@ -1875,18 +1784,15 @@
   margin-bottom: 10px;
 }
 .ct-weighin-label {
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
   color: var(--ink);
 }
 .ct-weighin-due {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1px;
   color: var(--accent-text);
   background: var(--accent-soft);
   padding: 5px 9px;
@@ -1900,11 +1806,9 @@
   border: none;
   background: var(--accent);
   color: var(--accent-ink);
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
@@ -1919,7 +1823,6 @@
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.4px;
   color: var(--accent-text);
   background: var(--accent-soft);
   padding: 10px 14px;
@@ -1942,7 +1845,6 @@
   font-weight: 700;
   line-height: 1;
   color: var(--ink);
-  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 .ct-weight-delta {
@@ -1955,22 +1857,18 @@
 .ct-weight-delta.down { color: var(--accent-text); }
 .ct-weight-delta.flat { color: var(--muted); }
 .ct-weight-since {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
 }
 .ct-weight-log { min-height: 44px; margin-top: 12px; }
 .ct-weight-history { margin-top: 12px; }
 .ct-weight-history-cap {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   color: var(--muted);
   padding-bottom: 4px;
   border-bottom: 1px solid var(--line);
@@ -1996,31 +1894,25 @@
   border: none;
   background: none;
   color: var(--accent-text);
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
 .ct-show-all:hover { background: var(--accent-soft); }
 
-/* ── Exercise ───────────────────────────────────────────────────────────────── */
+/* â”€â”€ Exercise â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* The exercise card reuses the meal card's classes; re-pointing the accent tokens at
-   the carbs blue turns its ident chips, + LOG chip, ✕ hover and add button "cool". */
+   the carbs blue turns its ident chips, + LOG chip, âœ• hover and add button "cool". */
 .ct-exercise,
 .ct-exercise-sheet {
   --accent: var(--c);
   --accent-soft: color-mix(in srgb, var(--c) 15%, transparent);
 }
-.ct-ex-total { color: var(--c-text); }
-.ct-exercise .ct-item-kcal { color: var(--c-text); }
 
 /* Gauge LCD: "+320 BURNED" under the goal caption, only when exercise is logged */
-.ct-lcd-ex { color: var(--c-text); margin-top: -1px; }
-.ct-strip-ex { color: var(--c-text); }
 
 .ct-exercise-sheet .ct-in-suffix .ct-in { padding-right: 52px; }
 
@@ -2047,92 +1939,8 @@
 .ct-readout-ex { color: var(--c-text); }
 .ct-readout-3l { gap: 1px; line-height: 1.2; }
 
-/* ── Eating window ──────────────────────────────────────────────────────────── */
+/* â”€â”€ Eating window â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-.ct-ew {
-  padding: 13px 15px 15px;
-  margin-bottom: 13px;
-}
-.ct-ew .ct-section-head { min-height: 30px; }
-.ct-ew-chip {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: var(--bg2);
-  padding: 5px 9px;
-  border-radius: 5px;
-  white-space: nowrap;
-}
-.ct-ew-chip.open { color: var(--accent-text); background: var(--accent-soft); }
-.ct-ew-timeline { margin: 10px 0 10px; }
-.ct-dark-theme .ct-ew-bar { filter: drop-shadow(0 0 4px rgba(255,122,26,0.45)); }
-/* Live end of an open window (today only) */
-.ct-ew-pulse {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ct-ew-pulse 1.6s ease-out infinite;
-}
-@keyframes ct-ew-pulse {
-  0%   { transform: scale(0.6); opacity: 0.9; }
-  100% { transform: scale(1.9); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ct-ew-pulse { animation: none; opacity: 0.6; }
-}
-.ct-ew-stats { gap: 6px; }
-.ct-ew-cell { padding: 9px 11px 8px; }
-.ct-ew-num { font-size: 18px; }
-/* Tappable time: looks like the LCD number, 44px tall, dotted underline = editable */
-.ct-ew-time {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  margin: -12px 0 -10px;
-  padding: 0;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-decoration: underline dotted;
-  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
-  text-underline-offset: 4px;
-}
-.ct-ew-time:hover { color: var(--accent-text); }
-.ct-ew-time:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
-.ct-dark-theme .ct-ew-time { text-shadow: 0 0 14px rgba(255,122,26,0.3); }
-.ct-ew-action {
-  width: 100%;
-  min-height: 48px;
-  margin-top: 12px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  font-size: 13px;
-}
-.ct-ew-stop {
-  border: 1.5px solid var(--accent);
-  background: none;
-  color: var(--accent-text);
-  font-family: var(--font-display);
-  font-weight: 700;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-.ct-ew-stop:hover { background: var(--accent-soft); }
-.ct-ew-stop:disabled { opacity: 0.5; cursor: default; }
-.ct-ew-log { min-height: 44px; margin-top: 12px; }
-.ct-ew-err { margin-top: 8px; }
-/* Edit sheet */
 .ct-ew-in { min-height: 48px; font-family: var(--font-display); font-weight: 700; }
 .ct-ew-note { text-transform: none; }
 .ct-ew-ampm { margin-top: 6px; }
@@ -2142,11 +1950,9 @@
   border: none;
   background: none;
   color: var(--redline-text);
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
@@ -2156,10 +1962,10 @@
 /* Metrics: fasting tiles sit under the section title, above the readout */
 .ct-fast-stats { margin: 10px 0 2px; }
 
-/* ── Read-only view (signed out) ────────────────────────────────────────────── */
+/* â”€â”€ Read-only view (signed out) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .ct-app { --viewbar-h: 44px; }
-/* Header chip in the REC badge's spot — muted: it's a state, not an action */
+/* Header chip in the REC badge's spot â€” muted: it's a state, not an action */
 .ct-viewonly-chip {
   color: var(--muted);
   background: var(--bg2);
@@ -2202,11 +2008,9 @@
   background: var(--bg2);
   border-top: 1px solid var(--line);
   text-decoration: none;
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
 }
 .ct-viewbar-text { color: var(--muted); white-space: nowrap; }
 .ct-viewbar-cta { color: var(--accent-text); white-space: nowrap; }
@@ -2231,11 +2035,9 @@
 }
 .ct-locked-text { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; }
 .ct-locked-cta {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
   color: var(--accent-text);
   white-space: nowrap;
 }
@@ -2249,18 +2051,16 @@
   justify-content: center;
   min-height: 44px;
   margin-top: 14px;
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   color: var(--muted);
   text-decoration: underline dotted;
   text-underline-offset: 4px;
 }
 .ct-login-alt:hover { color: var(--ink); }
 
-/* ── Meal note + estimate ("eating out?") ───────────────────────────────────── */
+/* â”€â”€ Meal note + estimate ("eating out?") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* Meal titles give way (ellipsis) before the header tools ever overflow a 320px card */
 .ct-meal-head .ct-meal-title,
@@ -2270,60 +2070,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ct-meal-head-r,
-.ct-meal-empty-r {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-.ct-meal-head-r .ct-meal-kcal { white-space: nowrap; }
-.ct-meal-head-r .ct-meal-kcal:not(:last-child) { margin-right: 6px; }
-/* Header tools: a 30px chip in a 44×44 hit area. The negative vertical margin keeps the
-   header row as tall as before; the last chip lines up with the card's right edge. */
-.ct-meal-head-r > .ct-meal-tool { margin: -13px 0; }
-.ct-meal-head-r > .ct-meal-tool:last-child { margin-right: -7px; }
-/* Neighbouring tools: hit areas overlap in the slack around each chip (8px between chips) */
-.ct-meal-head-r > .ct-meal-tool + .ct-meal-tool,
-.ct-meal-empty-r > .ct-meal-tool + .ct-meal-tool { margin-left: -6px; }
-.ct-meal-empty-r > .ct-meal-tool + .ct-log-btn { margin-left: -4px; }
-.ct-meal-tool {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.ct-meal-tool-ic {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 0 0 1px var(--line);
-  transition: background .15s, color .15s, box-shadow .15s;
-}
-.ct-meal-tool:hover .ct-meal-tool-ic {
-  color: var(--accent-text);
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px transparent;
-}
-.ct-meal-tool:disabled { opacity: 0.5; cursor: default; }
-.ct-meal-tool:focus-visible { outline: none; }
-.ct-meal-tool:focus-visible .ct-meal-tool-ic { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* The note: secondary text with a rule on the left, line breaks kept, clamped to 3 lines */
-.ct-meal-note {
-  margin: 9px 0 3px;
-  padding-left: 10px;
-  border-left: 2px solid var(--line);
-}
+/* The note: secondary text, line breaks kept, clamped to 3 lines */
+.ct-meal-note { margin: 0 44px 10px 22px; }
 .ct-meal-note-text {
   margin: 0;
   font-size: 13.5px;
@@ -2351,33 +2099,14 @@
   border: none;
   background: none;
   color: var(--accent-text);
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   cursor: pointer;
 }
 .ct-meal-note-more:hover { text-decoration: underline; text-underline-offset: 3px; }
 .ct-meal-note-more:focus-visible { outline: 2px solid var(--accent); outline-offset: -8px; border-radius: 4px; }
 
-/* Estimate row: a dashed ≈ chip and a mono caption, so it never reads as a logged food */
-.ct-est-ident {
-  background: transparent;
-  border: 1px dashed color-mix(in srgb, var(--accent) 65%, transparent);
-  font-size: 15px;
-  letter-spacing: 0;
-}
-.ct-est-name {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-/* Same footprint as the ✕ on food rows (15px icon + 3px padding = 21px), so kcal align */
-.ct-item-edit .ct-item-x-ic { padding: 3px; }
 
 /* Note sheet */
 .ct-md-form {
@@ -2419,15 +2148,14 @@
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.4px;
   color: var(--muted);
   padding-left: 2px;
 }
 .ct-md-clear { margin-top: -4px; }
 
-/* ── Meal photos ────────────────────────────────────────────────────────────── */
+/* â”€â”€ Meal photos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-/* The shared, invisible file input the camera chips open (not display:none — older
+/* The shared, invisible file input the camera chips open (not display:none â€” older
    iOS won't open the picker for a hidden input) */
 .ct-file-input {
   position: fixed;
@@ -2509,11 +2237,11 @@
   transition: width .2s ease;
 }
 
-/* Toast without an action (e.g. "Photo upload failed …"): wraps instead of truncating */
+/* Toast without an action (e.g. "Photo upload failed â€¦"): wraps instead of truncating */
 .ct-toast-info { padding: 10px 16px; }
 .ct-toast-info .ct-toast-text { white-space: normal; line-height: 1.45; }
 
-/* ── Photo viewer ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Photo viewer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* Full screen and always dark. z-index 60: above sheet scrims (50) and toasts (45). */
 .ct-viewer {
@@ -2549,11 +2277,9 @@
 .ct-viewer-count,
 .ct-viewer-cap,
 .ct-viewer-q {
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
   color: #A7ADB8;
   white-space: nowrap;
 }
@@ -2633,11 +2359,9 @@
   border-radius: var(--radius-sm);
   background: none;
   color: #EDEFF3;
-  font-family: var(--font-display);
+  font-family: 'Barlow', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
   cursor: pointer;
 }
 .ct-viewer-act:hover { border-color: rgba(255, 255, 255, 0.5); }
@@ -2654,32 +2378,39 @@
   color: #FF7A70;
 }
 
-/* ── Weigh-in due banner (signed in, top of the diary) ──────────────────────── */
+/* â”€â”€ Weigh-in due banner (signed in, top of the diary) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* The banner is now the top of the page, so it keeps clear of the notch instead */
-.ct-has-banner .ct-scroll { padding-top: 2px; }
 .ct-weighin-banner {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: calc(100% - 32px);
-  max-width: 398px;
   box-sizing: border-box;
   min-height: 44px;
-  margin: calc(10px + env(safe-area-inset-top)) auto 0;
+  margin: 10px 0 8px;
   padding: 0 14px;
-  border: 1.5px solid var(--accent);
   border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 600;
   text-decoration: none;
 }
-.ct-weighin-banner-dot { color: var(--accent-text); font-size: 11px; }
 .ct-weighin-banner-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ct-weighin-banner-cta { color: var(--accent-text); white-space: nowrap; }
+.ct-weighin-banner-cta { color: var(--accent-text); font-weight: 700; white-space: nowrap; }
 .ct-weighin-banner:hover .ct-weighin-banner-cta { text-decoration: underline; text-underline-offset: 3px; }
 .ct-weighin-banner:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* â”€â”€ Diary on a wide screen: summary beside the log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+@media (min-width: 900px) {
+  .ct-scroll-diary { max-width: 1040px; padding: 24px 24px 0; overflow-x: visible; }
+  .ct-day { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 40px; align-items: start; }
+  .ct-dayfield { position: sticky; top: 24px; border-radius: 26px; }
+  .ct-daylog { padding: 0; }
+  .ct-dock-tray { display: none; }
+  .ct-weighin-banner { margin: 0 0 12px; }
+  .ct-dock { position: static; width: 100%; max-width: none; margin: 0 0 8px; box-shadow: none; }
+  .ct-scroll-diary .ct-footspace { height: 28px; }
+  .ct-strip { display: none; }
+  .ct-tabbed:has(.ct-dock) .ct-toast-region { bottom: calc(var(--tabbar-h) + 1px + env(safe-area-inset-bottom) + 12px); }
+}

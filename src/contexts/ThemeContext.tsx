@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 interface ThemeCtx {
   dark: boolean
@@ -20,6 +20,11 @@ const Ctx = createContext<ThemeCtx>({ dark: true, setDark: () => {} })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [dark, setDarkState] = useState(readDark)
+
+  // The browser chrome matches the Diary's summary field.
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#2B1436' : '#0E3B2E')
+  }, [dark])
 
   const setDark = (next: boolean) => {
     setDarkState(next)

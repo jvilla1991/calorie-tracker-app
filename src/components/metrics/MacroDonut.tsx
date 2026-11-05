@@ -78,17 +78,17 @@ export default function MacroDonut({ split }: { split: MacroSplit | null }) {
               )}
               <text
                 x={cx} y={cy - 3} textAnchor="middle" dominantBaseline="central"
-                fill="var(--ink)" fontSize="17" fontWeight="700" fontFamily="'Space Mono', monospace"
+                fill="var(--ink)" fontSize="17" fontWeight="700" fontFamily="var(--font-display)"
                 className="ct-donut-num"
               >
                 {comma(split.avgKcal)}
               </text>
               <text
                 x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="central"
-                fill="var(--muted)" fontSize="9" fontWeight="700" letterSpacing="1.2"
-                fontFamily="'Space Mono', monospace"
+                fill="var(--muted)" fontSize="12" fontWeight="600"
+                fontFamily="var(--font-display)"
               >
-                KCAL/DAY
+                kcal/day
               </text>
             </svg>
           </div>

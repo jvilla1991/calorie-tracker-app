@@ -6,7 +6,7 @@ import { useElementWidth } from '../../hooks/useElementWidth'
 import { parseLocalDate } from '../../utils/date'
 import { fastingStats, formatClock, gapMs, hoursIntoDay, hoursLabel, formatDuration } from '../../utils/eatingWindow'
 
-const MONO = "'Space Mono', monospace"
+const MONO = "var(--font-display)"
 const H = 184
 const PAD_L = 30
 const PAD_R = 2
@@ -20,7 +20,6 @@ const readoutDate = (s: string) =>
   parseLocalDate(s)
     .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
     .replace(',', '')
-    .toUpperCase()
 
 interface Props {
   days: DaySummary[]
@@ -105,7 +104,7 @@ export default function FastingSection({ days, today }: Props) {
                   </span>
                 </span>
                 <button type="button" className="ct-readout-btn" onClick={() => navigate(`/diary/${sel.date}`)}>
-                  Open day ›
+                  Open day
                 </button>
               </>
             ) : (
