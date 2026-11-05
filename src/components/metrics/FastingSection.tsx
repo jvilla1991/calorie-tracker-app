@@ -122,7 +122,7 @@ export default function FastingSection({ days, today }: Props) {
                     stroke="var(--line)" strokeWidth="1"
                     strokeDasharray={h === 0 || h === 24 ? undefined : '2 3'}
                   />
-                  <text x={PAD_L - 6} y={y(h)} fill="var(--muted)" fontSize="9.5" fontFamily={MONO} textAnchor="end" dominantBaseline="central">
+                  <text x={PAD_L - 6} y={y(h)} fill="var(--muted)" fontSize="11" fontFamily={MONO} textAnchor="end" dominantBaseline="central">
                     {Y_LABEL[h]}
                   </text>
                 </g>
@@ -155,7 +155,7 @@ export default function FastingSection({ days, today }: Props) {
                     )}
                     {showXLabel(i) && (
                       <text
-                        x={cx} y={H - 6} fontSize="9.5" fontFamily={MONO} textAnchor="middle"
+                        x={cx} y={H - 6} fontSize="11" fontFamily={MONO} textAnchor="middle"
                         fill={isToday ? 'var(--accent)' : 'var(--muted)'} fontWeight={isToday ? 700 : 400}
                       >
                         {xLabel(d)}

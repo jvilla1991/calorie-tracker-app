@@ -1,0 +1,2 @@
+# The hook runs this launcher through sh, which fails on CRLF line endings.
+.claude/skills/impeccable/scripts/impeccable text eol=lf

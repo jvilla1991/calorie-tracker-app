@@ -26,8 +26,8 @@ export default function ReadoutStrip({ totals, goal, exercise = 0, visible, onCl
   const pct = budget > 0 ? Math.min(100, (eaten / budget) * 100) : 0
 
   const macros = [
-    { key: 'P', color: 'var(--p)', value: totals.protein, target: goal.protein },
-    { key: 'C', color: 'var(--c)', value: totals.carbs, target: goal.carbs },
+    { key: 'P', color: 'var(--p-text)', value: totals.protein, target: goal.protein },
+    { key: 'C', color: 'var(--c-text)', value: totals.carbs, target: goal.carbs },
     { key: 'F', color: 'var(--f)', value: totals.fat, target: goal.fat },
   ]
 
@@ -56,7 +56,7 @@ export default function ReadoutStrip({ totals, goal, exercise = 0, visible, onCl
       <span className="ct-strip-macros">
         {macros.map((m) => (
           <span className="ct-strip-macro" key={m.key}>
-            <span style={{ color: m.value > m.target ? 'var(--redline)' : m.color }}>
+            <span style={{ color: m.value > m.target ? 'var(--redline-text)' : m.color }}>
               {m.key} {Math.round(m.value)}
             </span>
             <span className="ct-strip-target">/{m.target}g</span>

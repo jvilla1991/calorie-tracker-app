@@ -166,7 +166,7 @@ export default function CalorieBars({ days, prevDay = null, today, selected, onS
                 strokeDasharray={t === 0 ? undefined : '2 3'}
               />
               <text
-                x={PAD_L - 6} y={y(t)} fill="var(--muted)" fontSize="9.5" fontFamily={MONO}
+                x={PAD_L - 6} y={y(t)} fill="var(--muted)" fontSize="11" fontFamily={MONO}
                 textAnchor="end" dominantBaseline="central"
               >
                 {kLabel(t)}
@@ -249,7 +249,7 @@ export default function CalorieBars({ days, prevDay = null, today, selected, onS
                 )}
                 {showXLabel(i) && (
                   <text
-                    x={cx} y={H - 6} fontSize="9.5" fontFamily={MONO} textAnchor="middle"
+                    x={cx} y={H - 6} fontSize="11" fontFamily={MONO} textAnchor="middle"
                     fill={isToday ? 'var(--accent)' : 'var(--muted)'}
                     fontWeight={isToday ? 700 : 400}
                   >

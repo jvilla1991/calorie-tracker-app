@@ -5,6 +5,7 @@ import { searchFoods, lookupBarcode, createFood, recentFoodsQuery } from '../api
 import type { Food, FoodSearchResult, RecentFood } from '../types'
 import BarcodeScannerView from './BarcodeScannerView'
 import { useScrollLock } from '../hooks/useScrollLock'
+import { useDialogFocus } from '../hooks/useDialogFocus'
 
 const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
@@ -25,7 +26,8 @@ function scaleToP100(value: string, servingG: number): number | null {
 
 interface Props {
   mealLabel?: string
-  onAdd: (food: Food, grams: number) => void
+  /** Resolves once the food is saved; rejects if saving failed. */
+  onAdd: (food: Food, grams: number) => Promise<void>
   onClose: () => void
 }
 
@@ -131,9 +133,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   // ── One-tap re-log ────────────────────────────────────────────────────────
   // Logs a recent food at its last-used quantity without leaving the list, so
   // several foods can be logged in a row. The sheet stays open on purpose.
-  // onAdd is fire-and-forget (the parent owns the mutation), so a short per-row
-  // lock doubles as the "✓ logged" feedback window and blocks double taps.
+  // The per-row lock blocks double taps while saving and through the "✓ logged" window.
+  const [relogging, setRelogging] = useState<ReadonlySet<number>>(() => new Set())
   const [relogged, setRelogged] = useState<ReadonlySet<number>>(() => new Set())
+  const [relogError, setRelogError] = useState<string | null>(null)
   const relogLock = useRef(new Set<number>())
   const relogTimers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
   useEffect(() => {
@@ -141,18 +144,46 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
     return () => timers.forEach((t) => clearTimeout(t))
   }, [])
 
-  const quickRelog = (e: MouseEvent, entry: RecentFood) => {
+  const quickRelog = async (e: MouseEvent, entry: RecentFood) => {
     e.stopPropagation()
     const id = entry.food.id
     if (relogLock.current.has(id)) return
     relogLock.current.add(id)
-    onAdd(entry.food, entry.quantityGrams)
-    setRelogged((prev) => new Set(prev).add(id))
-    relogTimers.current.set(id, setTimeout(() => {
+    setRelogError(null)
+    setRelogging((prev) => new Set(prev).add(id))
+    try {
+      await onAdd(entry.food, entry.quantityGrams)
+      setRelogged((prev) => new Set(prev).add(id))
+      relogTimers.current.set(id, setTimeout(() => {
+        relogLock.current.delete(id)
+        relogTimers.current.delete(id)
+        setRelogged((prev) => { const next = new Set(prev); next.delete(id); return next })
+      }, RELOG_FEEDBACK_MS))
+    } catch {
       relogLock.current.delete(id)
-      relogTimers.current.delete(id)
-      setRelogged((prev) => { const next = new Set(prev); next.delete(id); return next })
-    }, RELOG_FEEDBACK_MS))
+      setRelogError(`Couldn't log ${entry.food.name}. Tap + to try again.`)
+    } finally {
+      setRelogging((prev) => { const next = new Set(prev); next.delete(id); return next })
+    }
+  }
+
+  // ── Saving from the amount screens ────────────────────────────────────────
+  // The sheet closes only after the save succeeds, so a failure keeps the entered amount.
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const saveAndClose = async (food: Food, grams: number) => {
+    if (saving) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await onAdd(food, grams)
+      handleClose()
+    } catch {
+      setSaveError(`Couldn't log ${food.name}. Try again.`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   // ── Recent-confirm state ──────────────────────────────────────────────────
@@ -211,6 +242,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   const renderRecentRow = (entry: RecentFood) => {
     const { food } = entry
     const done = relogged.has(food.id)
+    const pending = relogging.has(food.id)
     const qty = fmt1(entry.quantityGrams)
     return (
       <div className="ct-food ct-recent-row" key={food.id}>
@@ -230,10 +262,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           type="button"
           className={'ct-relog-btn' + (done ? ' done' : '')}
           onClick={(e) => quickRelog(e, entry)}
-          aria-disabled={done}
-          aria-label={(done ? 'Logged ' : 'Log ') + food.name + (done ? ', ' : ' again, ') + qty + 'g'}
+          aria-disabled={done || pending}
+          aria-label={(done ? 'Logged ' : pending ? 'Logging ' : 'Log ') + food.name + (done || pending ? ', ' : ' again, ') + qty + 'g'}
         >
-          <span className="ct-relog-ic" aria-hidden="true">{done ? '✓' : '+'}</span>
+          <span className="ct-relog-ic" aria-hidden="true">{done ? '✓' : pending ? '…' : '+'}</span>
         </button>
       </div>
     )
@@ -255,8 +287,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
     if (!selected) return
     const g = computeGrams()
     if (!g) return
-    onAdd(selected, g)
-    handleClose()
+    saveAndClose(selected, g)
   }
 
   // ── Barcode ───────────────────────────────────────────────────────────────
@@ -277,6 +308,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
   })
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  // A food that was created but not logged, so a retry doesn't create it a second time.
+  // Editing the form means a different food, so the next save creates that one.
+  const createdFoodRef = useRef<Food | null>(null)
+  useEffect(() => { createdFoodRef.current = null }, [form, measureMode])
 
   const servingGrams = (): number => {
     const qty = parseFloat(form.servingQty)
@@ -312,33 +347,54 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
     setCreating(true)
     try {
-      const food = await createFood({
+      const food = createdFoodRef.current ?? await createFood({
         name: form.name.trim(), brand: form.brand.trim() || null, barcode: null,
         caloriesPer100g: cal100g, proteinPer100g: pro100g, carbsPer100g: carb100g,
         fatPer100g: fat100g, fiberPer100g: fib100g, servingSizeG: servSizeG,
       })
-      onAdd(food, servSizeG ?? 100)
+      createdFoodRef.current = food
+      await onAdd(food, servSizeG ?? 100)
       handleClose()
     } catch {
-      setCreateError('Failed to save — please try again')
+      setCreateError(createdFoodRef.current
+        ? `Saved ${createdFoodRef.current.name}, but couldn't log it. Try again.`
+        : 'Failed to save — please try again')
     } finally {
       setCreating(false)
     }
   }
 
-  const goBack = () => { setMode('pick'); setSelected(null); setPendingRecent(null); setScanError(null) }
+  const goBack = () => { setMode('pick'); setSelected(null); setPendingRecent(null); setScanError(null); setSaveError(null) }
+
+  // ── Keyboard ──────────────────────────────────────────────────────────────
+  // Escape steps back to the list first, matching the Back button, then closes the sheet.
+  const sheetRef = useRef<HTMLDivElement>(null)
+  useDialogFocus(sheetRef, () => { if (mode === 'pick') handleClose(); else goBack() })
+  // Changing screens removes the focused button, so bring focus back into the sheet.
+  useEffect(() => {
+    const sheet = sheetRef.current
+    if (sheet && !sheet.contains(document.activeElement)) sheet.focus()
+  }, [mode])
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={'ct-sheet-scrim' + (open ? ' open' : '')} onClick={handleClose}>
-      <div className={'ct-sheet' + (open ? ' open' : '')} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={sheetRef}
+        className={'ct-sheet' + (open ? ' open' : '')}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="food-sheet-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="ct-sheet-handle" />
 
         {/* ── Pick ──────────────────────────────────────────────────────────── */}
         {mode === 'pick' && (
           <>
             <div className="ct-sheet-head">
-              <span className="ct-sheet-title">Add to {mealLabel}</span>
+              <span className="ct-sheet-title" id="food-sheet-title">Add to {mealLabel}</span>
               <button className="ct-sheet-close" onClick={handleClose}>Done</button>
             </div>
 
@@ -348,10 +404,10 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
               </svg>
               <input
-                className="ct-search-in" placeholder="Search your foods"
+                className="ct-search-in" placeholder="Search your foods" aria-label="Search your foods"
                 value={q} onChange={(e) => setQ(e.target.value)}
               />
-              <button className="ct-scan-btn" title="Scan barcode" onClick={() => setMode('scan')}>
+              <button className="ct-scan-btn" title="Scan barcode" aria-label="Scan barcode" onClick={() => setMode('scan')}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 9V5a2 2 0 0 1 2-2h4M3 15v4a2 2 0 0 0 2 2h4M21 9V5a2 2 0 0 0-2-2h-4M21 15v4a2 2 0 0 1-2 2h-4" />
                   <line x1="7" y1="8" x2="7" y2="16" /><line x1="10" y1="8" x2="10" y2="16" />
@@ -361,6 +417,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
             </div>
 
             <div className="ct-pick-scroll" ref={scrollRef}>
+              {relogError && <div className="ct-error-msg" role="alert">{relogError}</div>}
               <button className="ct-create-row" onClick={() => setMode('create')}>
                 <span className="ct-create-ic">+</span>
                 <span>Create a new food{q.trim() ? ` "${q.trim()}"` : ''}</span>
@@ -428,11 +485,12 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">{mealLabel}</span>
+              <span className="ct-sheet-title" id="food-sheet-title">{mealLabel}</span>
               <span style={{ width: 40 }} />
             </div>
 
             <div className="ct-form">
+              {saveError && <div className="ct-error-msg" role="alert">{saveError}</div>}
               {/* Food preview */}
               <div className="ct-portion-food">
                 <span className="ct-food-ident" style={{ width: 44, height: 44, fontSize: 14, flexShrink: 0 }}>
@@ -447,7 +505,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                       {pendingRecent.food.brand}
                     </div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {pendingRecent.food.caloriesPer100g} kcal · P{pendingRecent.food.proteinPer100g ?? '?'} · C{pendingRecent.food.carbsPer100g ?? '?'} · F{pendingRecent.food.fatPer100g ?? '?'} per 100g
                   </div>
                 </div>
@@ -457,13 +515,11 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
               <div className="ct-recent-section-label">Same as last time</div>
               <button
                 className="ct-same-amount-btn"
-                onClick={() => {
-                  onAdd(pendingRecent.food, pendingRecent.quantityGrams)
-                  handleClose()
-                }}
+                disabled={saving}
+                onClick={() => saveAndClose(pendingRecent.food, pendingRecent.quantityGrams)}
               >
                 <span className="ct-same-amount-qty">{fmt1(pendingRecent.quantityGrams)}g</span>
-                <span className="ct-same-amount-cap">Tap to log</span>
+                <span className="ct-same-amount-cap">{saving ? 'Saving…' : 'Tap to log'}</span>
               </button>
 
               <div className="ct-recent-divider">
@@ -477,6 +533,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                     className="ct-in"
                     type="number"
                     inputMode="decimal"
+                    aria-label={`New amount in ${newUnit === 'g' ? 'grams' : 'ounces'}`}
                     value={newQty}
                     min="0.1"
                     step={newUnit === 'g' ? '1' : '0.1'}
@@ -499,7 +556,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   </div>
                 </div>
                 {newUnit === 'oz' && computeNewGrams() && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {computeNewGrams()}g
                   </span>
                 )}
@@ -507,15 +564,13 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
 
               <button
                 className="ct-save-btn"
-                disabled={!computeNewGrams()}
+                disabled={!computeNewGrams() || saving}
                 onClick={() => {
                   const g = computeNewGrams()
-                  if (!g) return
-                  onAdd(pendingRecent.food, g)
-                  handleClose()
+                  if (g) saveAndClose(pendingRecent.food, g)
                 }}
               >
-                Add to {mealLabel}
+                {saving ? 'Saving…' : `Add to ${mealLabel}`}
               </button>
             </div>
           </>
@@ -526,10 +581,11 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">{mealLabel}</span>
+              <span className="ct-sheet-title" id="food-sheet-title">{mealLabel}</span>
               <span style={{ width: 40 }} />
             </div>
             <div className="ct-form">
+              {saveError && <div className="ct-error-msg" role="alert">{saveError}</div>}
               <div className="ct-portion-food">
                 <span className="ct-food-ident" style={{ width: 44, height: 44, fontSize: 14, flexShrink: 0 }}>
                   {identOf(selected.name)}
@@ -541,16 +597,17 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   {selected.brand && (
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{selected.brand}</div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {selected.caloriesPer100g} kcal · P{selected.proteinPer100g ?? '?'} · C{selected.carbsPer100g ?? '?'} · F{selected.fatPer100g ?? '?'} per 100g
                   </div>
                 </div>
               </div>
 
               <div className="ct-field">
-                <label>Quantity</label>
+                <label htmlFor="food-quantity">Quantity</label>
                 <div className="ct-portion-row">
                   <input
+                    id="food-quantity"
                     className="ct-in" type="number" inputMode="decimal" value={quantity}
                     min="0.1" step={unit === 'g' ? '1' : '0.1'}
                     onChange={(e) => setQuantity(e.target.value)} style={{ flex: 1 }}
@@ -573,15 +630,15 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   </div>
                 </div>
                 {unit === 'srv' && selected.servingSizeG && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {selected.servingSizeG}g per serving
                     {(() => { const g = computeGrams(); return g && g !== selected.servingSizeG ? ` · ${g}g total` : '' })()}
                   </span>
                 )}
               </div>
 
-              <button className="ct-save-btn" onClick={handleAdd} disabled={!computeGrams()}>
-                Add to {mealLabel}
+              <button className="ct-save-btn" onClick={handleAdd} disabled={!computeGrams() || saving}>
+                {saving ? 'Saving…' : `Add to ${mealLabel}`}
               </button>
             </div>
           </>
@@ -592,11 +649,11 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">New food</span>
+              <span className="ct-sheet-title" id="food-sheet-title">New food</span>
               <span style={{ width: 40 }} />
             </div>
             <div className="ct-form">
-              {createError && <div className="ct-error-msg">{createError}</div>}
+              {createError && <div className="ct-error-msg" role="alert">{createError}</div>}
               <div className="ct-field">
                 <label>Nutrition listed as</label>
                 <div className="ct-unit-seg" style={{ alignSelf: 'flex-start' }}>
@@ -607,18 +664,18 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 </div>
               </div>
               <div className="ct-field ct-field-name">
-                <input className="ct-in" placeholder="Food name" autoFocus value={form.name}
+                <input className="ct-in" placeholder="Food name" aria-label="Food name" autoFocus value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
               </div>
               <div className="ct-field">
-                <input className="ct-in" placeholder="Brand (optional)" value={form.brand}
+                <input className="ct-in" placeholder="Brand (optional)" aria-label="Brand (optional)" value={form.brand}
                   onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
               </div>
               {measureMode === 'perServing' && (
                 <div className="ct-field">
-                  <label>Serving size</label>
+                  <label htmlFor="food-serving">Serving size</label>
                   <div className="ct-portion-row">
-                    <input className="ct-in" type="number" inputMode="decimal" min="0.1" step="0.1"
+                    <input id="food-serving" className="ct-in" type="number" inputMode="decimal" min="0.1" step="0.1"
                       placeholder="e.g. 250" value={form.servingQty}
                       onChange={(e) => setForm((f) => ({ ...f, servingQty: e.target.value }))} style={{ flex: 1 }} />
                     <div className="ct-unit-seg">
@@ -632,27 +689,27 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 </div>
               )}
               <div className="ct-field">
-                <label>Calories <span style={{ fontWeight: 400, opacity: 0.65 }}>
+                <label htmlFor="food-kcal">Calories <span style={{ fontWeight: 400, opacity: 0.65 }}>
                   {measureMode === 'perServing' ? '(per serving)' : '(per 100g)'}
                 </span></label>
-                <input className="ct-in" type="number" inputMode="numeric" placeholder="0"
+                <input id="food-kcal" className="ct-in" type="number" inputMode="numeric" placeholder="0"
                   value={form.kcal} onChange={(e) => setForm((f) => ({ ...f, kcal: e.target.value }))} />
               </div>
               <div className="ct-field-row">
                 {([['protein','Protein'],['carbs','Carbs'],['fat','Fat']] as const).map(([key, label]) => (
                   <div key={key} className="ct-field">
-                    <label>{label}</label>
-                    <input className="ct-in" type="number" inputMode="numeric" placeholder="0"
+                    <label htmlFor={`food-${key}`}>{label}</label>
+                    <input id={`food-${key}`} className="ct-in" type="number" inputMode="numeric" placeholder="0"
                       value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
                   </div>
                 ))}
               </div>
               <div className="ct-field">
-                <label>Fiber <span style={{ fontWeight: 400, opacity: 0.65 }}>(optional)</span></label>
-                <input className="ct-in" type="number" inputMode="numeric" placeholder="0"
+                <label htmlFor="food-fiber">Fiber <span style={{ fontWeight: 400, opacity: 0.65 }}>(optional)</span></label>
+                <input id="food-fiber" className="ct-in" type="number" inputMode="numeric" placeholder="0"
                   value={form.fiber} onChange={(e) => setForm((f) => ({ ...f, fiber: e.target.value }))} />
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', letterSpacing: 0.4 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 0.4 }}>
                 {measureMode === 'perServing'
                   ? 'Macros will be converted to per-100g for storage'
                   : 'Macros entered per 100g · logged as 100g by default'}
@@ -671,7 +728,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           <>
             <div className="ct-sheet-head">
               <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
-              <span className="ct-sheet-title">Scan barcode</span>
+              <span className="ct-sheet-title" id="food-sheet-title">Scan barcode</span>
               <span style={{ width: 40 }} />
             </div>
             {scanError && <div className="ct-error-msg" style={{ margin: '0 0 8px' }}>{scanError}</div>}
