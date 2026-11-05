@@ -1,4 +1,6 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { StatusBar, Style } from '@capacitor/status-bar'
 
 interface ThemeCtx {
   dark: boolean
@@ -20,6 +22,13 @@ const Ctx = createContext<ThemeCtx>({ dark: true, setDark: () => {} })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [dark, setDarkState] = useState(readDark)
+
+  // In the iOS app the clock and battery icons don't follow the page, so keep them
+  // readable against the current theme. Style.Dark means light text for a dark page.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(() => {})
+  }, [dark])
 
   const setDark = (next: boolean) => {
     setDarkState(next)

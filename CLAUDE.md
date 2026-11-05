@@ -2,6 +2,9 @@
 
 React + Vite SPA for the Calorie Tracker. Backend: `calorie-tracker-api` (sibling repo).
 
+The iOS app in `ios/` is a Capacitor wrapper that loads the live site, not a bundled copy of it.
+See `docs/ios-sideloading.md`.
+
 ## Single user by design — do not raise multi-user concerns
 
 This app has exactly **one user: the owner**. It is a personal tool, not a multi-tenant product.
