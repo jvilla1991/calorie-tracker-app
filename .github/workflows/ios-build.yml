@@ -67,6 +67,12 @@ jobs:
           /usr/libexec/PlistBuddy -c 'Print :NSCameraUsageDescription' "$APP/Info.plist"
           /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist"
           lipo -archs "$APP/App" | grep -q arm64
+          # A framework the app links but doesn't include would crash it on launch
+          otool -L "$APP/App" | awk '/@rpath\/.*\.framework/ {print $1}' | sed 's#@rpath/#Frameworks/#' |
+            while read -r framework; do
+              echo "Checking $framework"
+              test -f "$APP/$framework"
+            done
           ls -lh CalorieTracker.ipa
 
       - name: Upload the IPA
