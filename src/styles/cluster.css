@@ -1279,6 +1279,33 @@
   letter-spacing: 0.2px;
 }
 
+/* ── Failed-load notice on the diary ────────────────────────────────────────── */
+
+.ct-load-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.35;
+}
+.ct-load-notice-text { flex: 1; min-width: 0; }
+.ct-load-notice-retry {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ct-load-notice-retry:disabled { opacity: 0.6; cursor: default; }
+
 /* ── Scan button in search bar ──────────────────────────────────────────────── */
 
 .ct-scan-btn {
