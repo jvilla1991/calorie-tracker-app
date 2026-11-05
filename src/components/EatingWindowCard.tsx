@@ -119,7 +119,7 @@ export default function EatingWindowCard({ date, isToday, window: w, canEdit = t
             <text
               key={i}
               x={x(i / 4)} y={H - 3}
-              fontSize="9.5" fontFamily={MONO} fill="var(--muted)"
+              fontSize="11" fontFamily={MONO} fill="var(--muted)"
               textAnchor={i === 0 ? 'start' : i === 4 ? 'end' : 'middle'}
             >
               {l}

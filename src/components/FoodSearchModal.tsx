@@ -505,7 +505,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                       {pendingRecent.food.brand}
                     </div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {pendingRecent.food.caloriesPer100g} kcal · P{pendingRecent.food.proteinPer100g ?? '?'} · C{pendingRecent.food.carbsPer100g ?? '?'} · F{pendingRecent.food.fatPer100g ?? '?'} per 100g
                   </div>
                 </div>
@@ -556,7 +556,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   </div>
                 </div>
                 {newUnit === 'oz' && computeNewGrams() && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {computeNewGrams()}g
                   </span>
                 )}
@@ -597,7 +597,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   {selected.brand && (
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{selected.brand}</div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {selected.caloriesPer100g} kcal · P{selected.proteinPer100g ?? '?'} · C{selected.carbsPer100g ?? '?'} · F{selected.fatPer100g ?? '?'} per 100g
                   </div>
                 </div>
@@ -630,7 +630,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   </div>
                 </div>
                 {unit === 'srv' && selected.servingSizeG && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
                     {selected.servingSizeG}g per serving
                     {(() => { const g = computeGrams(); return g && g !== selected.servingSizeG ? ` · ${g}g total` : '' })()}
                   </span>
@@ -709,7 +709,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 <input id="food-fiber" className="ct-in" type="number" inputMode="numeric" placeholder="0"
                   value={form.fiber} onChange={(e) => setForm((f) => ({ ...f, fiber: e.target.value }))} />
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 10, color: 'var(--muted)', letterSpacing: 0.4 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 0.4 }}>
                 {measureMode === 'perServing'
                   ? 'Macros will be converted to per-100g for storage'
                   : 'Macros entered per 100g · logged as 100g by default'}

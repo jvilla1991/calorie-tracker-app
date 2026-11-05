@@ -97,7 +97,7 @@ export default function WeightChart({ points, unit, from, to, selectedId, onSele
               stroke="var(--line)" strokeWidth="1" strokeDasharray={i === 0 ? undefined : '2 3'}
             />
             <text
-              x={PAD_L - 6} y={y(t)} fill="var(--muted)" fontSize="9.5" fontFamily={MONO}
+              x={PAD_L - 6} y={y(t)} fill="var(--muted)" fontSize="11" fontFamily={MONO}
               textAnchor="end" dominantBaseline="central"
             >
               {fmtTick(t)}
@@ -111,7 +111,7 @@ export default function WeightChart({ points, unit, from, to, selectedId, onSele
           return (
             <g key={m.date}>
               <line x1={mx} x2={mx} y1={PAD_T + plotH} y2={PAD_T + plotH + 4} stroke="var(--muted)" strokeWidth="1" />
-              <text x={mx} y={H - 5} fill="var(--muted)" fontSize="9.5" fontFamily={MONO} textAnchor="middle">
+              <text x={mx} y={H - 5} fill="var(--muted)" fontSize="11" fontFamily={MONO} textAnchor="middle">
                 {m.label}
               </text>
             </g>

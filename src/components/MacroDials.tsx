@@ -17,11 +17,15 @@ function arcPath(cx: number, cy: number, r: number, deg0: number, deg1: number):
 function MacroDial({
   label,
   color,
+
+  labelColor,
   value,
   target,
 }: {
   label: string
   color: string
+
+  labelColor: string
   value: number
   target: number
 }) {
@@ -64,10 +68,10 @@ function MacroDial({
         />
         <circle cx={cx} cy={cy} r="3.4" fill="var(--card)" stroke="var(--needle)" strokeWidth="1.6" />
       </svg>
-      <div className="ct-dial-val" style={{ color: over ? 'var(--redline)' : 'var(--ink)' }}>
+      <div className="ct-dial-val" style={{ color: over ? 'var(--redline-text)' : 'var(--ink)' }}>
         {Math.round(value)}<span>/{target}g</span>
       </div>
-      <div className="ct-dial-label" style={{ color }}>{label}</div>
+      <div className="ct-dial-label" style={{ color: labelColor }}>{label}</div>
     </div>
   )
 }
@@ -80,11 +84,11 @@ interface Props {
 export default function MacroDials({ totals, goal }: Props) {
   return (
     <div className="ct-card ct-dials">
-      <MacroDial label="PROTEIN" color="var(--p)" value={totals.protein} target={goal.protein} />
+      <MacroDial label="PROTEIN" color="var(--p)" labelColor="var(--p-text)" value={totals.protein} target={goal.protein} />
       <div className="ct-dials-div" />
-      <MacroDial label="CARBS" color="var(--c)" value={totals.carbs} target={goal.carbs} />
+      <MacroDial label="CARBS" color="var(--c)" labelColor="var(--c-text)" value={totals.carbs} target={goal.carbs} />
       <div className="ct-dials-div" />
-      <MacroDial label="FAT" color="var(--f)" value={totals.fat} target={goal.fat} />
+      <MacroDial label="FAT" color="var(--f)" labelColor="var(--f)" value={totals.fat} target={goal.fat} />
     </div>
   )
 }
