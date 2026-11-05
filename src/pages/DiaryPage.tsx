@@ -162,6 +162,17 @@ const CAMERA = (
   </svg>
 )
 
+function LoadNotice({ message, retrying, onRetry }: { message: string; retrying: boolean; onRetry: () => void }) {
+  return (
+    <div className="ct-card ct-load-notice" role="alert">
+      <span className="ct-load-notice-text">{message}</span>
+      <button type="button" className="ct-load-notice-retry" disabled={retrying} onClick={onRetry}>
+        {retrying ? 'Retrying…' : 'Retry'}
+      </button>
+    </div>
+  )
+}
+
 function greeting() {
   const h = new Date().getHours()
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
@@ -267,15 +278,24 @@ export default function DiaryPage() {
     }
   }
 
-  const { data: diary, isLoading } = useQuery({
+  const {
+    data: diary, isLoading, isError: diaryFailed, isFetching: diaryFetching, refetch: refetchDiary,
+  } = useQuery({
     queryKey: ['diary', currentDate],
     queryFn: () => getDiary(currentDate),
   })
 
-  const { data: goals } = useQuery({
+  const { data: goals, isError: goalsFailed, isFetching: goalsFetching, refetch: refetchGoals } = useQuery({
     queryKey: ['goals'],
     queryFn: getGoals,
   })
+
+  // Nothing loaded for this day. Totals and meals stay hidden: zeros would look like an empty
+  // day, and logging would create a second copy of any meal the page can't see.
+  const dayUnavailable = diaryFailed && !diary
+  // A refresh failed, but the last loaded copy is still on screen.
+  const dayStale = diaryFailed && !!diary
+  const goalsUnavailable = goalsFailed && !goals
 
   // ── Meal rows ───────────────────────────────────────────────────────────────
   // A meal has no row until something is attached to it. Logging food or saving a note
@@ -577,9 +597,30 @@ export default function DiaryPage() {
           className={'ct-day' + (swipeAnim ? ` ct-swipe-${swipeAnim}` : '')}
           onAnimationEnd={(e) => { if (e.target === e.currentTarget) setSwipeAnim(null) }}
         >
+          {dayStale && (
+            <LoadNotice
+              message="Couldn't refresh this day. Showing the last loaded numbers."
+              retrying={diaryFetching}
+              onRetry={() => refetchDiary()}
+            />
+          )}
+          {!dayUnavailable && goalsUnavailable && (
+            <LoadNotice
+              message="Couldn't load your goals. Showing default targets."
+              retrying={goalsFetching}
+              onRetry={() => refetchGoals()}
+            />
+          )}
+
           {/* Gauge hero — the wrapper is what the readout strip's observer watches */}
           <div ref={gaugeRef}>
-            {isLoading ? (
+            {dayUnavailable ? (
+              <LoadNotice
+                message="Couldn't load this day. Check your connection and try again."
+                retrying={diaryFetching}
+                onRetry={() => refetchDiary()}
+              />
+            ) : isLoading ? (
               <div className="ct-card ct-gauge-card" style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
               </div>
@@ -589,10 +630,10 @@ export default function DiaryPage() {
           </div>
 
           {/* Macro dials */}
-          <MacroDials totals={totals} goal={effectiveGoals} />
+          {!dayUnavailable && <MacroDials totals={totals} goal={effectiveGoals} />}
 
           {/* Eating window — a day-level log, so it sits with the dials, above the meals */}
-          {!isLoading && (
+          {!isLoading && !dayUnavailable && (
             <EatingWindowCard
               date={currentDate}
               isToday={isToday}
@@ -607,7 +648,7 @@ export default function DiaryPage() {
           )}
 
           {/* Meal cards */}
-          <div className="ct-meals">
+          {!dayUnavailable && <div className="ct-meals">
             {MEAL_ORDER.map((mealType) => {
               const meal = sortedMeals.find((m) => m.mealType === mealType)
               const label = MEAL_LABELS[mealType] ?? mealType
@@ -802,7 +843,7 @@ export default function DiaryPage() {
                 )}
               </div>
             )}
-          </div>
+          </div>}
 
         </div>
 
@@ -811,7 +852,9 @@ export default function DiaryPage() {
 
       {/* Pinned readout while the gauge is scrolled away — outside ct-scroll so
           position:fixed is relative to the viewport. */}
-      <ReadoutStrip totals={totals} goal={effectiveGoals} exercise={exerciseKcal} visible={stripVisible} onClick={scrollToTop} />
+      {!dayUnavailable && (
+        <ReadoutStrip totals={totals} goal={effectiveGoals} exercise={exerciseKcal} visible={stripVisible} onClick={scrollToTop} />
+      )}
 
       {/* Toasts (undo, or a message such as a failed photo upload) — the live region is
           always mounted so screen readers announce them */}
