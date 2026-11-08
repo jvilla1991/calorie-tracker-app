@@ -86,7 +86,7 @@ export default function WeightSection({ span, onSpan, weighIns, status, onRetry,
           <div className="ct-readout" aria-live="polite">
             {selected ? (
               <span className="ct-readout-text">
-                {shortDate(selected.date).toUpperCase()} · <b>{formatWeight(selected.weightKg, unit).toUpperCase()}</b>
+                {shortDate(selected.date)} · <b>{formatWeight(selected.weightKg, unit).toUpperCase()}</b>
               </span>
             ) : (
               <span className="ct-readout-hint">

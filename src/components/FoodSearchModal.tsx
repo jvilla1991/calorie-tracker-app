@@ -7,6 +7,15 @@ import BarcodeScannerView from './BarcodeScannerView'
 import { useScrollLock } from '../hooks/useScrollLock'
 import { useDialogFocus } from '../hooks/useDialogFocus'
 
+const icon = (d: string, size = 16, width = 2.6) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d={d} />
+  </svg>
+)
+const ICON_PLUS = icon('M12 5v14M5 12h14')
+const ICON_CHECK = icon('M5 13l4 4L19 7')
+const ICON_BACK = icon('M15 5l-7 7 7 7', 18, 2.4)
+
 const identOf = (name: string) =>
   (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
 
@@ -265,7 +274,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
           aria-disabled={done || pending}
           aria-label={(done ? 'Logged ' : pending ? 'Logging ' : 'Log ') + food.name + (done || pending ? ', ' : ' again, ') + qty + 'g'}
         >
-          <span className="ct-relog-ic" aria-hidden="true">{done ? '✓' : pending ? '…' : '+'}</span>
+          <span className="ct-relog-ic" aria-hidden="true">{done ? ICON_CHECK : pending ? '…' : ICON_PLUS}</span>
         </button>
       </div>
     )
@@ -436,7 +445,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                     </button>
                   )}
                   {!hasNextPage && recentPageCount > 1 && (
-                    <div className="ct-pick-status">END OF HISTORY</div>
+                    <div className="ct-pick-status">End of history</div>
                   )}
                 </>
               )}
@@ -484,7 +493,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
         {mode === 'recent-confirm' && pendingRecent && (
           <>
             <div className="ct-sheet-head">
-              <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
+              <button className="ct-sheet-back" onClick={goBack}>{ICON_BACK}Back</button>
               <span className="ct-sheet-title" id="food-sheet-title">{mealLabel}</span>
               <span style={{ width: 40 }} />
             </div>
@@ -505,7 +514,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                       {pendingRecent.food.brand}
                     </div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
                     {pendingRecent.food.caloriesPer100g} kcal · P{pendingRecent.food.proteinPer100g ?? '?'} · C{pendingRecent.food.carbsPer100g ?? '?'} · F{pendingRecent.food.fatPer100g ?? '?'} per 100g
                   </div>
                 </div>
@@ -556,7 +565,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   </div>
                 </div>
                 {newUnit === 'oz' && computeNewGrams() && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
                     {computeNewGrams()}g
                   </span>
                 )}
@@ -580,7 +589,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
         {mode === 'portion' && selected && (
           <>
             <div className="ct-sheet-head">
-              <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
+              <button className="ct-sheet-back" onClick={goBack}>{ICON_BACK}Back</button>
               <span className="ct-sheet-title" id="food-sheet-title">{mealLabel}</span>
               <span style={{ width: 40 }} />
             </div>
@@ -597,7 +606,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   {selected.brand && (
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{selected.brand}</div>
                   )}
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
                     {selected.caloriesPer100g} kcal · P{selected.proteinPer100g ?? '?'} · C{selected.carbsPer100g ?? '?'} · F{selected.fatPer100g ?? '?'} per 100g
                   </div>
                 </div>
@@ -630,7 +639,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                   </div>
                 </div>
                 {unit === 'srv' && selected.servingSizeG && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4, letterSpacing: 0.3 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
                     {selected.servingSizeG}g per serving
                     {(() => { const g = computeGrams(); return g && g !== selected.servingSizeG ? ` · ${g}g total` : '' })()}
                   </span>
@@ -648,7 +657,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
         {mode === 'create' && (
           <>
             <div className="ct-sheet-head">
-              <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
+              <button className="ct-sheet-back" onClick={goBack}>{ICON_BACK}Back</button>
               <span className="ct-sheet-title" id="food-sheet-title">New food</span>
               <span style={{ width: 40 }} />
             </div>
@@ -709,7 +718,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
                 <input id="food-fiber" className="ct-in" type="number" inputMode="numeric" placeholder="0"
                   value={form.fiber} onChange={(e) => setForm((f) => ({ ...f, fiber: e.target.value }))} />
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 0.4 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)' }}>
                 {measureMode === 'perServing'
                   ? 'Macros will be converted to per-100g for storage'
                   : 'Macros entered per 100g · logged as 100g by default'}
@@ -727,7 +736,7 @@ export default function FoodSearchModal({ mealLabel = 'Meal', onAdd, onClose }: 
         {mode === 'scan' && (
           <>
             <div className="ct-sheet-head">
-              <button className="ct-sheet-back" onClick={goBack}>‹ Back</button>
+              <button className="ct-sheet-back" onClick={goBack}>{ICON_BACK}Back</button>
               <span className="ct-sheet-title" id="food-sheet-title">Scan barcode</span>
               <span style={{ width: 40 }} />
             </div>

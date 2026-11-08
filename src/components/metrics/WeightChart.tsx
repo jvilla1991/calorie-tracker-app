@@ -6,7 +6,7 @@ import { useElementWidth } from '../../hooks/useElementWidth'
 import { addDays, daysBetween, parseLocalDate } from '../../utils/date'
 import { bracketTicks, linearFit } from '../../utils/metrics'
 
-const MONO = "'Space Mono', monospace"
+const MONO = "var(--font-display)"
 const H = 150
 const PAD_L = 36
 const PAD_R = 8
@@ -64,7 +64,7 @@ export default function WeightChart({ points, unit, from, to, selectedId, onSele
     let cur = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
     while (cur <= to) {
       const dt = parseLocalDate(cur)
-      months.push({ date: cur, label: dt.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() })
+      months.push({ date: cur, label: dt.toLocaleDateString('en-US', { month: 'short' }) })
       cur = addDays(cur, 32).slice(0, 8) + '01'
     }
   }
