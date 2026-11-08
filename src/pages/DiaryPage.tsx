@@ -1,16 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { ChangeEvent, TouchEvent } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 import { getDiary, addMeal, addItem, deleteItem, addExercise, deleteExercise, setEatingWindow, clearEatingWindow, updateMealDetails, deletePhoto } from '../api/diary'
 import { getGoals } from '../api/goals'
-import GaugeHero from '../components/GaugeHero'
-import MacroDials from '../components/MacroDials'
+import DayHero from '../components/DayHero'
 import ReadoutStrip from '../components/ReadoutStrip'
 import FoodSearchModal from '../components/FoodSearchModal'
 import ExerciseSheet from '../components/ExerciseSheet'
-import EatingWindowCard from '../components/EatingWindowCard'
+import EatingWindowRow from '../components/EatingWindowRow'
 import EatingWindowSheet from '../components/EatingWindowSheet'
 import MealDetailsSheet from '../components/MealDetailsSheet'
 import MealNote from '../components/MealNote'
@@ -20,6 +19,7 @@ import { toIsoWithOffset } from '../utils/eatingWindow'
 import { useToday } from '../hooks/useToday'
 import { useSheet } from '../hooks/useSheet'
 import { useAuth } from '../hooks/useAuth'
+import { useWeighInDue } from '../hooks/useWeighInDue'
 import { usePhotoUploads } from '../hooks/usePhotoUploads'
 import { addDays, parseLocalDate } from '../utils/date'
 import { MAX_PHOTOS } from '../utils/photos'
@@ -37,10 +37,7 @@ const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack']
 const EMPTY_TOTALS: MacroTotals = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
 const DEFAULT_GOALS: DailyGoal = { calories: 2000, protein: 150, carbs: 200, fat: 65, fiber: 30 }
 
-const identOf = (name: string) =>
-  (name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '··'
-
-/** How long the "Removed … UNDO" toast waits before the delete is actually sent. */
+/** How long the "Removed â€¦ UNDO" toast waits before the delete is actually sent. */
 const UNDO_MS = 5000
 /** How long a message toast (e.g. a photo that failed to upload) stays up. */
 const INFO_MS = 4500
@@ -60,7 +57,7 @@ function errorText(err: unknown): string {
     const msg = (err.response?.data as { message?: unknown } | undefined)?.message
     if (typeof msg === 'string' && msg) return msg
   }
-  return 'Couldn’t save — please try again.'
+  return 'Couldnâ€™t save â€” please try again.'
 }
 
 /** The diary with one item removed and the meal + day totals reduced to match. */
@@ -167,15 +164,48 @@ function LoadNotice({ message, retrying, onRetry }: { message: string; retrying:
     <div className="ct-card ct-load-notice" role="alert">
       <span className="ct-load-notice-text">{message}</span>
       <button type="button" className="ct-load-notice-retry" disabled={retrying} onClick={onRetry}>
-        {retrying ? 'Retrying…' : 'Retry'}
+        {retrying ? 'Retryingâ€¦' : 'Retry'}
       </button>
     </div>
   )
 }
 
-function greeting() {
-  const h = new Date().getHours()
-  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
+const REMOVE = (
+  <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
+    <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+)
+
+const PLUS = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+)
+
+const MORE = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" />
+  </svg>
+)
+
+const chevron = (d: string) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d={d} />
+  </svg>
+)
+
+/**
+ * Which meal the docked Log button offers: the main meal after the latest one logged,
+ * then snack. With nothing logged yet, today goes by the clock; a past day starts at breakfast.
+ */
+function nextMeal(meals: DiaryMeal[], isToday: boolean): string {
+  const logged = (type: string) => meals.some((m) => m.mealType === type && (m.items.length > 0 || m.estimatedCalories != null))
+  if (logged('dinner')) return 'snack'
+  if (logged('lunch')) return 'dinner'
+  if (logged('breakfast')) return 'lunch'
+  if (!isToday) return 'breakfast'
+  const h = new Date().getHours() + new Date().getMinutes() / 60
+  return h < 10.5 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snack'
 }
 
 export default function DiaryPage() {
@@ -185,6 +215,7 @@ export default function DiaryPage() {
   const today = useToday()
   // Signed out = read-only: every write control below is hidden (swiping days still works).
   const { loggedIn } = useAuth()
+  const weighInDue = useWeighInDue()
   const currentDate = date ?? today
   const isToday = currentDate === today
 
@@ -221,17 +252,17 @@ export default function DiaryPage() {
     }
   }
 
-  // Collapsing readout strip: shown while the gauge card is out of view. The negative
+  // Collapsing readout strip: shown while the day's summary is out of view. The negative
   // top margin treats the band the strip occupies as "off-screen", so the strip takes
-  // over just as the gauge's LCD slides under it rather than after it has vanished.
-  const gaugeRef = useRef<HTMLDivElement>(null)
+  // over just as the budget bar slides under it rather than after it has vanished.
+  const summaryRef = useRef<HTMLDivElement>(null)
   const [stripVisible, setStripVisible] = useState(false)
   useEffect(() => {
-    const el = gaugeRef.current
+    const el = summaryRef.current
     if (!el || typeof IntersectionObserver === 'undefined') return
     const io = new IntersectionObserver(
       ([entry]) => {
-        // Only "scrolled past" counts — never show it when the gauge is below the fold.
+        // Only "scrolled past" counts: never show it when the summary is below the fold.
         setStripVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0)
       },
       { rootMargin: '-64px 0px 0px 0px', threshold: 0 },
@@ -243,8 +274,8 @@ export default function DiaryPage() {
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
 
-  // ── Swipe to change day ─────────────────────────────────────────────────────
-  // Measured from touchstart to touchend only — touchmove is never cancelled, so
+  // â”€â”€ Swipe to change day â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Measured from touchstart to touchend only â€” touchmove is never cancelled, so
   // vertical scrolling is untouched (the container also sets touch-action: pan-y).
   const swipeStart = useRef<{ x: number; y: number } | null>(null)
   const [swipeAnim, setSwipeAnim] = useState<'next' | 'prev' | null>(null)
@@ -268,7 +299,7 @@ export default function DiaryPage() {
     const dy = t.clientY - start.y
     if (Math.abs(dx) <= SWIPE_MIN_DX || Math.abs(dx) <= SWIPE_RATIO * Math.abs(dy)) return
     if (dx < 0) {
-      // Swipe left → next day, never past today (same rule as the › button)
+      // Swipe left â†’ next day, never past today (same rule as the â€º button)
       if (currentDate >= today) return
       if (!prefersReducedMotion()) setSwipeAnim('next')
       navigate(`/diary/${addDays(currentDate, 1)}`)
@@ -297,7 +328,7 @@ export default function DiaryPage() {
   const dayStale = diaryFailed && !!diary
   const goalsUnavailable = goalsFailed && !goals
 
-  // ── Meal rows ───────────────────────────────────────────────────────────────
+  // â”€â”€ Meal rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // A meal has no row until something is attached to it. Logging food or saving a note
   // creates the row first; requests for the same meal share one create, so a meal is
   // never created twice (the API would happily make a second Breakfast).
@@ -344,7 +375,7 @@ export default function DiaryPage() {
     },
   })
 
-  // ── Exercise ────────────────────────────────────────────────────────────────
+  // â”€â”€ Exercise â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const exerciseSheet = useSheet()
   const addExerciseMut = useMutation({
     mutationFn: ({ name, calories }: { name: string; calories: number }) => addExercise(currentDate, name, calories),
@@ -357,7 +388,7 @@ export default function DiaryPage() {
   })
   const openExerciseSheet = () => { addExerciseMut.reset(); exerciseSheet.show() }
 
-  // ── Eating window ───────────────────────────────────────────────────────────
+  // â”€â”€ Eating window â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const windowSheet = useSheet()
   const onWindowChanged = (eatingWindow: DiaryResponse['eatingWindow']) => {
     qc.setQueryData<DiaryResponse>(['diary', currentDate], (d) => (d ? { ...d, eatingWindow } : d))
@@ -380,8 +411,8 @@ export default function DiaryPage() {
     if (w) setWindowMut.mutate({ startedAt: w.startedAt, endedAt: toIsoWithOffset(new Date()) })
   }
 
-  // ── Delete with undo ────────────────────────────────────────────────────────
-  // Tapping ✕ only *hides* the item (and takes it out of the totals) and shows an
+  // â”€â”€ Delete with undo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Tapping âœ• only *hides* the item (and takes it out of the totals) and shows an
   // undo toast. The real DELETE is sent when the toast times out, when another item
   // is deleted, or when the user changes day / leaves the page / backgrounds the app.
   // Food items and exercise entries share the one pending slot.
@@ -411,7 +442,7 @@ export default function DiaryPage() {
   }, [qc])
 
   const handleDelete = (kind: PendingDelete['kind'], id: number, name: string) => {
-    commitDelete() // only one pending delete at a time — send the previous one now
+    commitDelete() // only one pending delete at a time â€” send the previous one now
     pendingRef.current = { kind, id, name, date: currentDate }
     setPendingDelete(pendingRef.current)
     undoTimer.current = setTimeout(commitDelete, UNDO_MS)
@@ -423,9 +454,9 @@ export default function DiaryPage() {
     setPendingDelete(null)
   }
 
-  // Flush a pending delete when the day changes or the page unmounts…
+  // Flush a pending delete when the day changes or the page unmountsâ€¦
   useEffect(() => () => commitDelete(), [currentDate, commitDelete])
-  // …and when the app is backgrounded (an installed PWA may be killed without unmounting).
+  // â€¦and when the app is backgrounded (an installed PWA may be killed without unmounting).
   useEffect(() => {
     const onVisibility = () => { if (document.visibilityState === 'hidden') commitDelete() }
     document.addEventListener('visibilitychange', onVisibility)
@@ -434,7 +465,7 @@ export default function DiaryPage() {
 
   const handleOpenAddFood = (mealType: string) => openSheet({ mealType, date: currentDate })
 
-  // ── Meal note + estimate ("eating out?") ────────────────────────────────────
+  // â”€â”€ Meal note + estimate ("eating out?") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const detailsSheet = useSheet()
   const [detailsFor, setDetailsFor] = useState<string | null>(null)
   const detailsMut = useMutation({
@@ -454,7 +485,7 @@ export default function DiaryPage() {
     detailsSheet.show()
   }
 
-  // ── Message toast (no action) ───────────────────────────────────────────────
+  // â”€â”€ Message toast (no action) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [info, setInfo] = useState<{ id: number; text: string } | null>(null)
   const infoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const showInfo = useCallback((text: string) => {
@@ -464,7 +495,7 @@ export default function DiaryPage() {
   }, [])
   useEffect(() => () => clearTimeout(infoTimer.current), [])
 
-  // ── Meal photos ─────────────────────────────────────────────────────────────
+  // â”€â”€ Meal photos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onPhotoUploaded = useCallback((date: string, mealId: number, photo: MealPhoto) => {
     qc.setQueryData<DiaryResponse>(['diary', date], (d) => (d ? withPhoto(d, mealId, photo) : d))
     qc.invalidateQueries({ queryKey: ['diary', date] })
@@ -500,12 +531,14 @@ export default function DiaryPage() {
     const take = files.slice(0, freeSlots(target.date, target.mealType))
     const skipped = files.length - take.length
     if (take.length === 0) showInfo(`${MEAL_LABELS[target.mealType] ?? target.mealType} already has ${MAX_PHOTOS} photos.`)
-    else if (skipped > 0) showInfo(`Only ${take.length} more ${take.length === 1 ? 'fits' : 'fit'} (${MAX_PHOTOS} per meal) — skipped ${skipped}.`)
+    else if (skipped > 0) showInfo(`Only ${take.length} more ${take.length === 1 ? 'fits' : 'fit'} (${MAX_PHOTOS} per meal) â€” skipped ${skipped}.`)
     enqueue(target.date, target.mealType, take)
   }
 
   // Full-screen viewer for one meal's photos; signed in, a photo can be deleted from it.
   const [viewer, setViewer] = useState<{ date: string; mealType: string; index: number } | null>(null)
+  // The meal whose note and photo actions are showing.
+  const [toolsFor, setToolsFor] = useState<string | null>(null)
   const deletePhotoMut = useMutation({
     // Already gone (deleted on another device) counts as deleted.
     mutationFn: ({ photo }: { date: string; mealType: string; photo: MealPhoto }) =>
@@ -545,324 +578,257 @@ export default function DiaryPage() {
     (a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)
   )
   const detailsMeal = detailsFor ? sortedMeals.find((m) => m.mealType === detailsFor) : undefined
+  const mealShares = MEAL_ORDER.map((mealType) => ({
+    mealType,
+    label: MEAL_LABELS[mealType] ?? mealType,
+    calories: sortedMeals.filter((m) => m.mealType === mealType).reduce((sum, m) => sum + m.totals.calories, 0),
+  }))
+  const dockMeal = nextMeal(sortedMeals, isToday)
   const viewerPhotos = viewer && viewer.date === currentDate
     ? sortedMeals.find((m) => m.mealType === viewer.mealType)?.photos ?? []
     : []
 
   return (
     <>
-      {/* Scrollable content — kept separate so the fixed sheet overlay sits outside
+      {/* Scrollable content â€” kept separate so the fixed sheet overlay sits outside
           the overflow-x:hidden container and renders correctly at viewport level. */}
       <div
-        className="ct-scroll"
+        className="ct-scroll ct-scroll-diary"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={() => { swipeStart.current = null }}
       >
-        {/* Header */}
-        {/* Header: greeting + badge share the first row; the date row runs full width
-            underneath so long dates never collide with the badge on narrow phones. */}
-        <header className="ct-top">
-          <div className="ct-top-row">
-            <div className="ct-greet">{greeting()}</div>
-            <div className="ct-top-right">
-              {!loggedIn && <div className="ct-cluster-badge ct-viewonly-chip">VIEW ONLY</div>}
-              {isToday ? (
-                // Nothing is being recorded in the read-only view, so the REC badge goes.
-                loggedIn ? <div className="ct-cluster-badge">● REC · TODAY</div> : null
-              ) : (
-                <button
-                  type="button"
-                  className="ct-today-chip"
-                  onClick={() => navigate(`/diary/${today}`)}
-                  aria-label="Jump to today"
-                >
-                  <span className="ct-cluster-badge">TODAY ›</span>
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="ct-date-nav">
-            <button
-              className="ct-date-btn"
-              onClick={() => navigate(`/diary/${addDays(currentDate, -1)}`)}
-              aria-label="Previous day"
-            >‹</button>
-            <span className="ct-date">{dateLabel}</span>
-            <button
-              className="ct-date-btn"
-              onClick={() => navigate(`/diary/${addDays(currentDate, 1)}`)}
-              disabled={currentDate >= today}
-              aria-label="Next day"
-            >›</button>
-          </div>
-        </header>
-
-        {/* Day content — gets a short slide-in nudge after a swipe */}
+        {/* Day content: gets a short slide-in nudge after a swipe */}
         <div
           className={'ct-day' + (swipeAnim ? ` ct-swipe-${swipeAnim}` : '')}
           onAnimationEnd={(e) => { if (e.target === e.currentTarget) setSwipeAnim(null) }}
         >
-          {dayStale && (
-            <LoadNotice
-              message="Couldn't refresh this day. Showing the last loaded numbers."
-              retrying={diaryFetching}
-              onRetry={() => refetchDiary()}
-            />
-          )}
-          {!dayUnavailable && goalsUnavailable && (
-            <LoadNotice
-              message="Couldn't load your goals. Showing default targets."
-              retrying={goalsFetching}
-              onRetry={() => refetchGoals()}
-            />
-          )}
+          <section className="ct-dayfield" ref={summaryRef}>
+            <header className="ct-date-nav">
+              <button
+                className="ct-date-btn"
+                onClick={() => navigate(`/diary/${addDays(currentDate, -1)}`)}
+                aria-label="Previous day"
+              >{chevron('M15 5l-7 7 7 7')}</button>
+              <h1 className="ct-date">{dateLabel}</h1>
+              {isToday ? (
+                <button className="ct-date-btn" disabled aria-label="Next day">{chevron('M9 5l7 7-7 7')}</button>
+              ) : (
+                <span className="ct-date-end">
+                  <button type="button" className="ct-today-chip" onClick={() => navigate(`/diary/${today}`)}>Today</button>
+                  <button
+                    className="ct-date-btn"
+                    onClick={() => navigate(`/diary/${addDays(currentDate, 1)}`)}
+                    aria-label="Next day"
+                  >{chevron('M9 5l7 7-7 7')}</button>
+                </span>
+              )}
+            </header>
 
-          {/* Gauge hero — the wrapper is what the readout strip's observer watches */}
-          <div ref={gaugeRef}>
-            {dayUnavailable ? (
+            {isLoading ? (
+              <div className="ct-hero-loading">Loadingâ€¦</div>
+            ) : !dayUnavailable && (
+              <>
+                <DayHero
+                  totals={totals}
+                  goal={effectiveGoals}
+                  exercise={exerciseKcal}
+                  meals={mealShares}
+                  onGoalClick={loggedIn ? () => navigate('/profile#goals') : undefined}
+                />
+                <EatingWindowRow
+                  date={currentDate}
+                  isToday={isToday}
+                  window={shownDiary?.eatingWindow ?? null}
+                  canEdit={loggedIn}
+                  busy={setWindowMut.isPending}
+                  error={!windowSheet.visible && setWindowMut.isError ? errorText(setWindowMut.error) : null}
+                  onStart={startEating}
+                  onStop={stopEating}
+                  onEdit={openWindowSheet}
+                />
+              </>
+            )}
+          </section>
+
+          <div className="ct-daylog">
+            {weighInDue && (
+              <Link to="/metrics" className="ct-weighin-banner" role="status">
+                <span className="ct-weighin-banner-text">Monday weigh-in due</span>
+                <span className="ct-weighin-banner-cta">Log</span>
+              </Link>
+            )}
+            {dayUnavailable && (
               <LoadNotice
                 message="Couldn't load this day. Check your connection and try again."
                 retrying={diaryFetching}
                 onRetry={() => refetchDiary()}
               />
-            ) : isLoading ? (
-              <div className="ct-card ct-gauge-card" style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: 'var(--muted)', letterSpacing: 2 }}>LOADING…</span>
-              </div>
-            ) : (
-              <GaugeHero totals={totals} goal={effectiveGoals} exercise={exerciseKcal} onGoalClick={loggedIn ? () => navigate('/profile#goals') : undefined} />
             )}
-          </div>
+            {dayStale && (
+              <LoadNotice
+                message="Couldn't refresh this day. Showing the last loaded numbers."
+                retrying={diaryFetching}
+                onRetry={() => refetchDiary()}
+              />
+            )}
+            {!dayUnavailable && goalsUnavailable && (
+              <LoadNotice
+                message="Couldn't load your goals. Showing default targets."
+                retrying={goalsFetching}
+                onRetry={() => refetchGoals()}
+              />
+            )}
 
-          {/* Macro dials */}
-          {!dayUnavailable && <MacroDials totals={totals} goal={effectiveGoals} />}
+            {/* The next meal, one thumb away; every meal below keeps its own add button. */}
+            {loggedIn && !isLoading && !dayUnavailable && <div className="ct-dock-tray" aria-hidden />}
+            {loggedIn && !isLoading && !dayUnavailable && (
+              <button
+                type="button"
+                className={`ct-dock ct-m-${dockMeal}`}
+                onClick={() => handleOpenAddFood(dockMeal)}
+              >
+                {PLUS}
+                Log {(MEAL_LABELS[dockMeal] ?? dockMeal).toLowerCase()}
+              </button>
+            )}
 
-          {/* Eating window — a day-level log, so it sits with the dials, above the meals */}
-          {!isLoading && !dayUnavailable && (
-            <EatingWindowCard
-              date={currentDate}
-              isToday={isToday}
-              window={shownDiary?.eatingWindow ?? null}
-              canEdit={loggedIn}
-              busy={setWindowMut.isPending}
-              error={!windowSheet.visible && setWindowMut.isError ? errorText(setWindowMut.error) : null}
-              onStart={startEating}
-              onStop={stopEating}
-              onEdit={openWindowSheet}
-            />
-          )}
+            {!dayUnavailable && <div className="ct-meals">
+              {MEAL_ORDER.map((mealType) => {
+                const meal = sortedMeals.find((m) => m.mealType === mealType)
+                const label = MEAL_LABELS[mealType] ?? mealType
+                const mealKcal = meal ? Math.round(meal.totals.calories) : 0
+                const items = meal?.items ?? []
+                const note = meal?.note ?? null
+                const estimate = meal?.estimatedCalories ?? null
+                const photos = meal?.photos ?? []
+                // Photos still on their way up (the meal row may not exist yet).
+                const mealUploads = uploads.filter((u) => u.date === currentDate && u.mealType === mealType)
+                const hasDetails = note != null || estimate != null
+                const toolsOpen = toolsFor === mealType
 
-          {/* Meal cards */}
-          {!dayUnavailable && <div className="ct-meals">
-            {MEAL_ORDER.map((mealType) => {
-              const meal = sortedMeals.find((m) => m.mealType === mealType)
-              const label = MEAL_LABELS[mealType] ?? mealType
-              const mealKcal = meal ? Math.round(meal.totals.calories) : 0
-              const items = meal?.items ?? []
-              const note = meal?.note ?? null
-              const estimate = meal?.estimatedCalories ?? null
-              const photos = meal?.photos ?? []
-              // Photos still on their way up (the meal row may not exist yet).
-              const mealUploads = uploads.filter((u) => u.date === currentDate && u.mealType === mealType)
-              const hasDetails = note != null || estimate != null
-
-              // "Eating out?" — opens the note + estimate sheet.
-              const noteBtn = loggedIn && (
-                <button
-                  type="button"
-                  className="ct-meal-tool"
-                  onClick={() => openDetails(mealType)}
-                  aria-label={hasDetails ? `Edit the ${label} note and estimate` : `Add a note to ${label}`}
-                >
-                  <span className="ct-meal-tool-ic">{PENCIL}</span>
-                </button>
-              )
-
-              // Photos: the phone offers its camera or photo library.
-              const photoBtn = loggedIn && (
-                <button
-                  type="button"
-                  className="ct-meal-tool"
-                  onClick={() => pickPhotos(mealType)}
-                  aria-label={`Add photos to ${label}`}
-                >
-                  <span className="ct-meal-tool-ic">{CAMERA}</span>
-                </button>
-              )
-
-              // Nothing on the meal yet: one compact row instead of a title + full-width button.
-              if (items.length === 0 && !hasDetails && photos.length === 0 && mealUploads.length === 0) {
                 return (
-                  <div key={mealType} className="ct-meal ct-card ct-meal-empty">
-                    <span className="ct-meal-title">{label}</span>
-                    {loggedIn ? (
-                      <div className="ct-meal-empty-r">
-                        {noteBtn}
-                        {photoBtn}
+                  <section key={mealType} className={`ct-meal ct-m-${mealType}`} aria-label={label}>
+                    <div className="ct-meal-head">
+                      <span className="ct-meal-sw" aria-hidden />
+                      <h2 className="ct-meal-title">{label}</h2>
+                      {loggedIn && (
                         <button
                           type="button"
-                          className="ct-log-btn"
+                          className="ct-meal-more"
+                          aria-expanded={toolsOpen}
+                          aria-label={`${label} note and photos`}
+                          onClick={() => setToolsFor(toolsOpen ? null : mealType)}
+                        >{MORE}</button>
+                      )}
+                      <span className="ct-meal-kcal">
+                        {mealKcal > 0 ? comma(mealKcal) : !loggedIn && <span aria-label="Nothing logged">â€”</span>}
+                      </span>
+                      {loggedIn && (
+                        <button
+                          type="button"
+                          className="ct-meal-add"
                           onClick={() => handleOpenAddFood(mealType)}
                           aria-label={`Log item to ${label}`}
-                        >
-                          <span className="ct-log-chip">+ Log</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="ct-meal-none" aria-label="Nothing logged">—</span>
-                    )}
-                  </div>
-                )
-              }
-
-              return (
-                <div key={mealType} className="ct-meal ct-card">
-                  <div className="ct-meal-head">
-                    <span className="ct-meal-title">{label}</span>
-                    <div className="ct-meal-head-r">
-                      {mealKcal > 0 && <span className="ct-meal-kcal">{comma(mealKcal)} kcal</span>}
-                      {noteBtn}
-                      {photoBtn}
-                    </div>
-                  </div>
-
-                  {meal && note && <MealNote key={meal.id} text={note} />}
-
-                  {(photos.length > 0 || mealUploads.length > 0) && (
-                    <MealPhotos
-                      photos={photos}
-                      uploads={mealUploads}
-                      mealLabel={label}
-                      date={currentDate}
-                      onOpen={(index) => setViewer({ date: currentDate, mealType, index })}
-                    />
-                  )}
-
-                  {(items.length > 0 || estimate != null) && (
-                    <div className="ct-meal-list">
-                      {items.map((item) => (
-                        <div className="ct-item ct-item-mono" key={item.id}>
-                          <span className="ct-item-ident">{identOf(item.food.name)}</span>
-                          <span className="ct-item-name">{item.food.name}</span>
-                          <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
-                          {loggedIn && (
-                            <button
-                              className="ct-item-x"
-                              onClick={() => handleDelete('food', item.id, item.food.name)}
-                              aria-label={`Remove ${item.food.name}`}
-                            >
-                              <span className="ct-item-x-ic">
-                                <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
-                                  <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                                </svg>
-                              </span>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      {/* The rough guess for what couldn't be logged: dashed ≈ chip, no macros. */}
-                      {estimate != null && (
-                        <div className="ct-item ct-item-mono ct-item-est">
-                          <span className="ct-item-ident ct-est-ident" aria-hidden>≈</span>
-                          <span className="ct-item-name ct-est-name">Estimate</span>
-                          <span className="ct-item-kcal">{comma(estimate)}</span>
-                          {loggedIn && (
-                            <button
-                              className="ct-item-x ct-item-edit"
-                              onClick={() => openDetails(mealType)}
-                              aria-label={`Edit the estimate for ${label}`}
-                            >
-                              <span className="ct-item-x-ic">{PENCIL}</span>
-                            </button>
-                          )}
-                        </div>
+                        ><span>{PLUS}</span></button>
                       )}
                     </div>
-                  )}
 
+                    {toolsOpen && loggedIn && (
+                      <div className="ct-meal-tools">
+                        <button type="button" className="ct-meal-tool" onClick={() => openDetails(mealType)}>
+                          {PENCIL}{hasDetails ? 'Edit note' : 'Add note'}
+                        </button>
+                        <button type="button" className="ct-meal-tool" onClick={() => pickPhotos(mealType)}>
+                          {CAMERA}Add photos
+                        </button>
+                      </div>
+                    )}
+
+                    {meal && note && <MealNote key={meal.id} text={note} />}
+
+                    {(photos.length > 0 || mealUploads.length > 0) && (
+                      <MealPhotos
+                        photos={photos}
+                        uploads={mealUploads}
+                        mealLabel={label}
+                        date={currentDate}
+                        onOpen={(index) => setViewer({ date: currentDate, mealType, index })}
+                      />
+                    )}
+
+                    {items.map((item) => (
+                      <div className="ct-item" key={item.id}>
+                        <span className="ct-item-name">{item.food.name}</span>
+                        <span className="ct-item-kcal">{Math.round(item.macros.calories)}</span>
+                        {loggedIn && (
+                          <button
+                            className="ct-item-x"
+                            onClick={() => handleDelete('food', item.id, item.food.name)}
+                            aria-label={`Remove ${item.food.name}`}
+                          >{REMOVE}</button>
+                        )}
+                      </div>
+                    ))}
+                    {/* The rough guess for what couldn't be logged. */}
+                    {estimate != null && (
+                      <div className="ct-item ct-item-est">
+                        <span className="ct-item-name">Estimate</span>
+                        <span className="ct-item-kcal">â‰ˆ {comma(estimate)}</span>
+                        {loggedIn && (
+                          <button
+                            className="ct-item-x"
+                            onClick={() => openDetails(mealType)}
+                            aria-label={`Edit the estimate for ${label}`}
+                          >{PENCIL}</button>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                )
+              })}
+
+              <section className="ct-meal ct-m-exercise" aria-label="Exercise">
+                <div className="ct-meal-head">
+                  <span className="ct-meal-sw" aria-hidden />
+                  <h2 className="ct-meal-title">Exercise</h2>
+                  <span className="ct-meal-kcal" aria-label={exercise.length > 0 ? `${comma(exerciseKcal)} kcal burned` : undefined}>
+                    {exercise.length > 0 ? `âˆ’${comma(exerciseKcal)}` : !loggedIn && <span aria-label="Nothing logged">â€”</span>}
+                  </span>
                   {loggedIn && (
-                    <button
-                      className="ct-add-btn"
-                      onClick={() => handleOpenAddFood(mealType)}
-                    >
-                      <span className="ct-add-plus">+</span>
-                      Log item
+                    <button type="button" className="ct-meal-add" onClick={openExerciseSheet} aria-label="Log exercise">
+                      <span>{PLUS}</span>
                     </button>
                   )}
                 </div>
-              )
-            })}
-
-            {/* Exercise: same card language as a meal, in the cool "burned" blue. */}
-            {exercise.length === 0 ? (
-              <div className="ct-meal ct-card ct-meal-empty ct-exercise">
-                <span className="ct-meal-title">Exercise</span>
-                {loggedIn ? (
-                  <button
-                    type="button"
-                    className="ct-log-btn"
-                    onClick={openExerciseSheet}
-                    aria-label="Log exercise"
-                  >
-                    <span className="ct-log-chip">+ Log</span>
-                  </button>
-                ) : (
-                  <span className="ct-meal-none" aria-label="Nothing logged">—</span>
-                )}
-              </div>
-            ) : (
-              <div className="ct-meal ct-card ct-exercise">
-                <div className="ct-meal-head">
-                  <span className="ct-meal-title">Exercise</span>
-                  <span className="ct-meal-kcal ct-ex-total" aria-label={`${comma(exerciseKcal)} kcal burned`}>
-                    −{comma(exerciseKcal)} kcal
-                  </span>
-                </div>
-                <div className="ct-meal-list">
-                  {exercise.map((e) => (
-                    <div className="ct-item ct-item-mono" key={e.id}>
-                      <span className="ct-item-ident">{identOf(e.name)}</span>
-                      <span className="ct-item-name">{e.name}</span>
-                      <span className="ct-item-kcal">−{comma(e.calories)}</span>
-                      {loggedIn && (
-                        <button
-                          className="ct-item-x"
-                          onClick={() => handleDelete('exercise', e.id, e.name)}
-                          aria-label={`Remove ${e.name}`}
-                        >
-                          <span className="ct-item-x-ic">
-                            <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
-                              <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                            </svg>
-                          </span>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {loggedIn && (
-                  <button className="ct-add-btn" onClick={openExerciseSheet}>
-                    <span className="ct-add-plus">+</span>
-                    Log exercise
-                  </button>
-                )}
-              </div>
-            )}
-          </div>}
-
+                {exercise.map((e) => (
+                  <div className="ct-item" key={e.id}>
+                    <span className="ct-item-name">{e.name}</span>
+                    <span className="ct-item-kcal">âˆ’{comma(e.calories)}</span>
+                    {loggedIn && (
+                      <button
+                        className="ct-item-x"
+                        onClick={() => handleDelete('exercise', e.id, e.name)}
+                        aria-label={`Remove ${e.name}`}
+                      >{REMOVE}</button>
+                    )}
+                  </div>
+                ))}
+              </section>
+            </div>}
+          </div>
         </div>
 
         <div className="ct-footspace" />
       </div>
 
-      {/* Pinned readout while the gauge is scrolled away — outside ct-scroll so
+      {/* Pinned readout while the day's summary is scrolled away: outside ct-scroll so
           position:fixed is relative to the viewport. */}
       {!dayUnavailable && (
-        <ReadoutStrip totals={totals} goal={effectiveGoals} exercise={exerciseKcal} visible={stripVisible} onClick={scrollToTop} />
+        <ReadoutStrip totals={totals} goal={effectiveGoals} exercise={exerciseKcal} meals={mealShares} visible={stripVisible} onClick={scrollToTop} />
       )}
 
-      {/* Toasts (undo, or a message such as a failed photo upload) — the live region is
+      {/* Toasts (undo, or a message such as a failed photo upload) â€” the live region is
           always mounted so screen readers announce them */}
       <div className="ct-toast-region" aria-live="polite">
         {pendingDelete ? (
@@ -877,14 +843,16 @@ export default function DiaryPage() {
         ) : null}
       </div>
 
-      {/* Food search sheet — rendered OUTSIDE ct-scroll so position:fixed works
+      {/* Food search sheet â€” rendered OUTSIDE ct-scroll so position:fixed works
           correctly regardless of the parent's overflow-x:hidden. */}
       {loggedIn && activeSheet !== null && (
-        <FoodSearchModal
-          mealLabel={MEAL_LABELS[activeSheet.mealType] ?? activeSheet.mealType}
-          onAdd={handleAddFood}
-          onClose={closeSheet}
-        />
+        <div className={`ct-meal-accent ct-m-${activeSheet.mealType}`}>
+          <FoodSearchModal
+            mealLabel={MEAL_LABELS[activeSheet.mealType] ?? activeSheet.mealType}
+            onAdd={handleAddFood}
+            onClose={closeSheet}
+          />
+        </div>
       )}
 
       {loggedIn && windowSheet.visible && (

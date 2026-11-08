@@ -14,9 +14,9 @@ export default defineConfig({
         name: 'Calorie Tracker',
         short_name: 'Calories',
         description: 'Personal calorie and macro tracking app',
-        // Match the dark instrument-cluster theme (default)
-        theme_color: '#0D0E11',
-        background_color: '#0D0E11',
+        // Match the dark theme (default)
+        theme_color: '#2B1436',
+        background_color: '#150E1A',
         display: 'standalone',
         start_url: '/',
         icons: [

@@ -1,0 +1,981 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T18:24:26.331Z",
+  "title": "Design System: Calorie Tracker",
+  "extensions": {
+    "colorMeta": {
+      "field-green": {
+        "role": "primary",
+        "displayName": "Field Green",
+        "canonical": "#0E3B2E",
+        "tonalRamp": [
+          "#001009",
+          "#002C20",
+          "#1E493B",
+          "#3D6859",
+          "#5C8878",
+          "#7DAA99",
+          "#A3D0BF",
+          "#E2F3EC"
+        ]
+      },
+      "field-green-track": {
+        "role": "primary",
+        "displayName": "Field Green Track",
+        "canonical": "#245A48",
+        "tonalRamp": [
+          "#001008",
+          "#002C1F",
+          "#124B39",
+          "#346A57",
+          "#558A76",
+          "#76AC97",
+          "#9CD2BD",
+          "#E0F4EB"
+        ]
+      },
+      "field-white": {
+        "role": "primary",
+        "displayName": "Field White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C4C4C4",
+          "#EEEEEE"
+        ]
+      },
+      "field-celery": {
+        "role": "primary",
+        "displayName": "Field Celery",
+        "canonical": "#C4DCCD",
+        "tonalRamp": [
+          "#020F07",
+          "#16291E",
+          "#314539",
+          "#4E6357",
+          "#6D8476",
+          "#8EA597",
+          "#B4CBBC",
+          "#E8F1EB"
+        ]
+      },
+      "aubergine-field": {
+        "role": "primary",
+        "displayName": "Aubergine Field",
+        "canonical": "#2B1436",
+        "tonalRamp": [
+          "#13031B",
+          "#30183B",
+          "#4D3459",
+          "#6B5279",
+          "#8C719A",
+          "#AE92BD",
+          "#D4B8E3",
+          "#F5EAFB"
+        ]
+      },
+      "aubergine-track": {
+        "role": "primary",
+        "displayName": "Aubergine Track",
+        "canonical": "#46265A",
+        "tonalRamp": [
+          "#150022",
+          "#321245",
+          "#4F2F64",
+          "#6E4D85",
+          "#8F6DA7",
+          "#B18ECA",
+          "#D7B4F0",
+          "#F5E9FE"
+        ]
+      },
+      "aubergine-mist": {
+        "role": "primary",
+        "displayName": "Aubergine Mist",
+        "canonical": "#D5C3DE",
+        "tonalRamp": [
+          "#100715",
+          "#2C1E32",
+          "#48394F",
+          "#67576E",
+          "#87768F",
+          "#A897B1",
+          "#CEBDD7",
+          "#F2EBF6"
+        ]
+      },
+      "squash": {
+        "role": "secondary",
+        "displayName": "Squash",
+        "canonical": "#F2A71B",
+        "tonalRamp": [
+          "#160700",
+          "#341F00",
+          "#573901",
+          "#7D550D",
+          "#A67112",
+          "#CF9022",
+          "#FDB43A",
+          "#FEEBD2"
+        ]
+      },
+      "squash-text": {
+        "role": "secondary",
+        "displayName": "Squash Text",
+        "canonical": "#7A5200",
+        "tonalRamp": [
+          "#160700",
+          "#332000",
+          "#573900",
+          "#7D5505",
+          "#9F7532",
+          "#C19654",
+          "#E8BC7C",
+          "#FDECD3"
+        ]
+      },
+      "tomato": {
+        "role": "secondary",
+        "displayName": "Tomato",
+        "canonical": "#CE3A20",
+        "tonalRamp": [
+          "#230000",
+          "#4B0100",
+          "#790F00",
+          "#AA2106",
+          "#D64228",
+          "#FE674C",
+          "#FBAE9D",
+          "#FEE9E4"
+        ]
+      },
+      "tomato-text": {
+        "role": "secondary",
+        "displayName": "Tomato Text",
+        "canonical": "#B2321B",
+        "tonalRamp": [
+          "#220000",
+          "#4A0400",
+          "#771402",
+          "#A8270F",
+          "#CE4D35",
+          "#F57057",
+          "#FDAD9C",
+          "#FFE9E4"
+        ]
+      },
+      "tomato-wash": {
+        "role": "secondary",
+        "displayName": "Tomato Wash",
+        "canonical": "#FBE6DF",
+        "tonalRamp": [
+          "#130805",
+          "#2F201B",
+          "#4C3B36",
+          "#6B5953",
+          "#8B7972",
+          "#AD9A93",
+          "#D3BFB9",
+          "#F4ECEA"
+        ]
+      },
+      "plum": {
+        "role": "secondary",
+        "displayName": "Plum",
+        "canonical": "#6E3189",
+        "tonalRamp": [
+          "#170023",
+          "#39014D",
+          "#5B1C75",
+          "#7B3E97",
+          "#9D5FBA",
+          "#BF80DE",
+          "#E1ACFC",
+          "#F7E8FF"
+        ]
+      },
+      "plum-bar": {
+        "role": "secondary",
+        "displayName": "Plum Bar",
+        "canonical": "#A862CC",
+        "tonalRamp": [
+          "#180025",
+          "#3A0050",
+          "#5D117C",
+          "#7E389F",
+          "#9F59C3",
+          "#C27BE8",
+          "#E0ADFC",
+          "#F6E9FF"
+        ]
+      },
+      "leaf": {
+        "role": "secondary",
+        "displayName": "Leaf",
+        "canonical": "#3FA65F",
+        "tonalRamp": [
+          "#001101",
+          "#002D0F",
+          "#034E22",
+          "#127036",
+          "#29944E",
+          "#51B76F",
+          "#7CDD95",
+          "#D6F9DC"
+        ]
+      },
+      "leaf-text": {
+        "role": "secondary",
+        "displayName": "Leaf Text",
+        "canonical": "#1F6B3A",
+        "tonalRamp": [
+          "#001102",
+          "#002D11",
+          "#004E22",
+          "#236E3D",
+          "#478F5C",
+          "#69B27C",
+          "#90D8A2",
+          "#DCF7E1"
+        ]
+      },
+      "cornflower": {
+        "role": "secondary",
+        "displayName": "Cornflower",
+        "canonical": "#2A6DB8",
+        "tonalRamp": [
+          "#000926",
+          "#00234D",
+          "#003F7B",
+          "#185EA7",
+          "#3D7FCB",
+          "#5EA1F0",
+          "#9BC8FF",
+          "#E4F0FE"
+        ]
+      },
+      "cornflower-text": {
+        "role": "secondary",
+        "displayName": "Cornflower Text",
+        "canonical": "#1F5C9E",
+        "tonalRamp": [
+          "#000926",
+          "#00234C",
+          "#013F7A",
+          "#225FA1",
+          "#447FC4",
+          "#65A2E9",
+          "#9BC8FD",
+          "#E4F0FF"
+        ]
+      },
+      "window-green": {
+        "role": "tertiary",
+        "displayName": "Window Green",
+        "canonical": "#2C8C4B",
+        "tonalRamp": [
+          "#001101",
+          "#002D0F",
+          "#034E21",
+          "#127036",
+          "#349351",
+          "#59B572",
+          "#83DC98",
+          "#D8F9DD"
+        ]
+      },
+      "fat-ochre": {
+        "role": "tertiary",
+        "displayName": "Fat Ochre",
+        "canonical": "#8A5A00",
+        "tonalRamp": [
+          "#160700",
+          "#341F00",
+          "#593800",
+          "#7F5304",
+          "#A47228",
+          "#C7934C",
+          "#EDBA75",
+          "#FFEBD3"
+        ]
+      },
+      "over-red": {
+        "role": "tertiary",
+        "displayName": "Over Red",
+        "canonical": "#C41E12",
+        "tonalRamp": [
+          "#220000",
+          "#4B0200",
+          "#7C0300",
+          "#AE150A",
+          "#DB3A2A",
+          "#FD6755",
+          "#FFAB9E",
+          "#FEE9E5"
+        ]
+      },
+      "over-red-text": {
+        "role": "tertiary",
+        "displayName": "Over Red Text",
+        "canonical": "#B01A0F",
+        "tonalRamp": [
+          "#220000",
+          "#4D0000",
+          "#7C0501",
+          "#AE170C",
+          "#D54334",
+          "#FC6855",
+          "#FEAC9E",
+          "#FEE9E5"
+        ]
+      },
+      "celery-ground": {
+        "role": "neutral",
+        "displayName": "Celery Ground",
+        "canonical": "#F3F6EC",
+        "tonalRamp": [
+          "#0A0C07",
+          "#23251E",
+          "#3F4139",
+          "#5C5F56",
+          "#7C7F76",
+          "#9DA097",
+          "#C3C5BC",
+          "#EEEFEB"
+        ]
+      },
+      "celery-ground-deep": {
+        "role": "neutral",
+        "displayName": "Celery Ground Deep",
+        "canonical": "#E8EDDF",
+        "tonalRamp": [
+          "#0A0C05",
+          "#22261B",
+          "#3E4236",
+          "#5B6054",
+          "#7B7F73",
+          "#9CA194",
+          "#C2C6B9",
+          "#EDEFEA"
+        ]
+      },
+      "crate-white": {
+        "role": "neutral",
+        "displayName": "Crate White",
+        "canonical": "#FCFDF8",
+        "tonalRamp": [
+          "#0B0B09",
+          "#242421",
+          "#3F403C",
+          "#5D5E5A",
+          "#7D7E79",
+          "#9E9F9A",
+          "#C4C5C0",
+          "#EEEFED"
+        ]
+      },
+      "crate-ink": {
+        "role": "neutral",
+        "displayName": "Crate Ink",
+        "canonical": "#17231C",
+        "tonalRamp": [
+          "#050D08",
+          "#1B2720",
+          "#36433C",
+          "#546259",
+          "#738179",
+          "#94A399",
+          "#B9C8BF",
+          "#EAF0EC"
+        ]
+      },
+      "crate-muted": {
+        "role": "neutral",
+        "displayName": "Crate Muted",
+        "canonical": "#55625A",
+        "tonalRamp": [
+          "#060D09",
+          "#1C2720",
+          "#37433C",
+          "#546159",
+          "#748179",
+          "#94A29A",
+          "#BAC8BF",
+          "#EAF0EC"
+        ]
+      },
+      "crate-hairline": {
+        "role": "neutral",
+        "displayName": "Crate Hairline",
+        "canonical": "#DCE2D3",
+        "tonalRamp": [
+          "#090C05",
+          "#22261B",
+          "#3D4236",
+          "#5B6053",
+          "#7A8072",
+          "#9BA193",
+          "#C1C7B8",
+          "#EDEFEA"
+        ]
+      },
+      "crate-track": {
+        "role": "neutral",
+        "displayName": "Crate Track",
+        "canonical": "#E1E6D7",
+        "tonalRamp": [
+          "#0A0C05",
+          "#22261B",
+          "#3E4236",
+          "#5B6053",
+          "#7B7F72",
+          "#9CA193",
+          "#C2C6B8",
+          "#EDEFEA"
+        ]
+      },
+      "night-squash": {
+        "role": "secondary",
+        "displayName": "Night Squash",
+        "canonical": "#F8B93D",
+        "tonalRamp": [
+          "#150800",
+          "#322000",
+          "#553A00",
+          "#7A5604",
+          "#A37402",
+          "#CB9315",
+          "#F5B843",
+          "#FFECCD"
+        ]
+      },
+      "night-tomato": {
+        "role": "secondary",
+        "displayName": "Night Tomato",
+        "canonical": "#F4664E",
+        "tonalRamp": [
+          "#220000",
+          "#4C0000",
+          "#7A0B00",
+          "#AC1E05",
+          "#D24731",
+          "#FA6B53",
+          "#FDAD9D",
+          "#FFE9E4"
+        ]
+      },
+      "night-tomato-text": {
+        "role": "secondary",
+        "displayName": "Night Tomato Text",
+        "canonical": "#FF8A75",
+        "tonalRamp": [
+          "#220000",
+          "#4A0400",
+          "#7B0900",
+          "#9F3323",
+          "#C55643",
+          "#EB7864",
+          "#FDAC9D",
+          "#FFE9E4"
+        ]
+      },
+      "night-tomato-wash": {
+        "role": "secondary",
+        "displayName": "Night Tomato Wash",
+        "canonical": "rgba(244, 102, 78, 0.16)",
+        "tonalRamp": [
+          "#220000",
+          "#4C0000",
+          "#7A0B00",
+          "#AC1E05",
+          "#D24731",
+          "#FA6B53",
+          "#FDAD9D",
+          "#FFE9E4"
+        ]
+      },
+      "night-plum": {
+        "role": "secondary",
+        "displayName": "Night Plum",
+        "canonical": "#B98BD1",
+        "tonalRamp": [
+          "#170023",
+          "#360A48",
+          "#542A68",
+          "#744989",
+          "#9568AC",
+          "#B789CF",
+          "#DDAFF6",
+          "#F7E8FF"
+        ]
+      },
+      "night-plum-text": {
+        "role": "secondary",
+        "displayName": "Night Plum Text",
+        "canonical": "#CDA6E0",
+        "tonalRamp": [
+          "#160020",
+          "#341242",
+          "#512F61",
+          "#714D81",
+          "#916DA3",
+          "#B48DC6",
+          "#DAB3EC",
+          "#F7E8FF"
+        ]
+      },
+      "night-leaf": {
+        "role": "secondary",
+        "displayName": "Night Leaf",
+        "canonical": "#5CC37B",
+        "tonalRamp": [
+          "#001102",
+          "#012D12",
+          "#004E23",
+          "#0E7037",
+          "#26944F",
+          "#4FB770",
+          "#7BDD96",
+          "#D5F9DD"
+        ]
+      },
+      "night-cornflower": {
+        "role": "secondary",
+        "displayName": "Night Cornflower",
+        "canonical": "#6BAAEB",
+        "tonalRamp": [
+          "#000B22",
+          "#002546",
+          "#004176",
+          "#20609C",
+          "#4381BF",
+          "#64A3E4",
+          "#98C9FD",
+          "#E3F0FF"
+        ]
+      },
+      "night-cornflower-text": {
+        "role": "secondary",
+        "displayName": "Night Cornflower Text",
+        "canonical": "#8ABDF0",
+        "tonalRamp": [
+          "#000B21",
+          "#002545",
+          "#0F426D",
+          "#31618F",
+          "#5081B1",
+          "#71A3D5",
+          "#98C9FB",
+          "#E3F0FE"
+        ]
+      },
+      "night-fat-ochre": {
+        "role": "tertiary",
+        "displayName": "Night Fat Ochre",
+        "canonical": "#E0B35A",
+        "tonalRamp": [
+          "#140800",
+          "#322100",
+          "#543B00",
+          "#785708",
+          "#A07509",
+          "#C3973C",
+          "#E9BD68",
+          "#FEECCD"
+        ]
+      },
+      "night-over-red": {
+        "role": "tertiary",
+        "displayName": "Night Over Red",
+        "canonical": "#FF5C4D",
+        "tonalRamp": [
+          "#220000",
+          "#4B0101",
+          "#7C0203",
+          "#AF1310",
+          "#DB382E",
+          "#FD6757",
+          "#FFAB9F",
+          "#FEE9E6"
+        ]
+      },
+      "night-over-red-text": {
+        "role": "tertiary",
+        "displayName": "Night Over Red Text",
+        "canonical": "#FF7A6E",
+        "tonalRamp": [
+          "#210000",
+          "#4B0003",
+          "#7D0007",
+          "#A72724",
+          "#CD4D44",
+          "#F37064",
+          "#FCACA3",
+          "#FFE9E6"
+        ]
+      },
+      "night-ground": {
+        "role": "neutral",
+        "displayName": "Night Ground",
+        "canonical": "#150E1A",
+        "tonalRamp": [
+          "#0E0912",
+          "#28202E",
+          "#443C4A",
+          "#625A69",
+          "#827989",
+          "#A49AAB",
+          "#C9C0D1",
+          "#F0EDF4"
+        ]
+      },
+      "night-ground-raised": {
+        "role": "neutral",
+        "displayName": "Night Ground Raised",
+        "canonical": "#241A2C",
+        "tonalRamp": [
+          "#0F0715",
+          "#291F31",
+          "#453B4F",
+          "#64586D",
+          "#84788E",
+          "#A599B0",
+          "#CBBED6",
+          "#F1ECF6"
+        ]
+      },
+      "night-card": {
+        "role": "neutral",
+        "displayName": "Night Card",
+        "canonical": "#1E1525",
+        "tonalRamp": [
+          "#0F0814",
+          "#292030",
+          "#453B4D",
+          "#63596C",
+          "#83788D",
+          "#A599AE",
+          "#CABFD4",
+          "#F1ECF5"
+        ]
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "#F4EDF6",
+        "tonalRamp": [
+          "#0D0A0E",
+          "#272228",
+          "#433D45",
+          "#615B63",
+          "#817B83",
+          "#A29CA4",
+          "#C8C1CA",
+          "#F0EDF1"
+        ]
+      },
+      "night-muted": {
+        "role": "neutral",
+        "displayName": "Night Muted",
+        "canonical": "#AC9BB4",
+        "tonalRamp": [
+          "#100715",
+          "#2B1E31",
+          "#48394F",
+          "#66576E",
+          "#87768E",
+          "#A897B0",
+          "#CEBDD6",
+          "#F2ECF6"
+        ]
+      },
+      "night-hairline": {
+        "role": "neutral",
+        "displayName": "Night Hairline",
+        "canonical": "#30243A",
+        "tonalRamp": [
+          "#0F0716",
+          "#2A1E34",
+          "#463A51",
+          "#655770",
+          "#857791",
+          "#A698B3",
+          "#CCBDD9",
+          "#F1ECF7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The kcal-left numeral. One per screen."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Meal names."
+      },
+      "strip-number": {
+        "displayName": "Strip Number",
+        "purpose": "Kcal left in the pinned readout."
+      },
+      "sheet-title": {
+        "displayName": "Sheet Title",
+        "purpose": "Bottom sheet headings."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "The docked Log button."
+      },
+      "section-title": {
+        "displayName": "Section Title",
+        "purpose": "Card headings on Metrics and Profile."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Tabular totals, eaten, budget and macro values."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Food names."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Macro names, units and captions."
+      },
+      "chart-label": {
+        "displayName": "Chart Label",
+        "purpose": "Chart axis numerals at the 11px floor."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-ring",
+        "value": "0 0 0 1px var(--line)",
+        "purpose": "Cards on Metrics and Profile."
+      },
+      {
+        "name": "dock-lift",
+        "value": "0 8px 20px rgba(0,0,0,.28)",
+        "purpose": "The docked Log button on phones."
+      },
+      {
+        "name": "toast-lift",
+        "value": "0 8px 24px rgba(0,0,0,0.25)",
+        "purpose": "The undo toast, light theme."
+      },
+      {
+        "name": "toast-lift-dark",
+        "value": "0 0 0 1px var(--line), 0 8px 24px rgba(0,0,0,0.5)",
+        "purpose": "The undo toast, dark theme."
+      },
+      {
+        "name": "sheet-lift",
+        "value": "0 -12px 44px rgba(40,24,14,0.20)",
+        "purpose": "Bottom sheets."
+      }
+    ],
+    "motion": [
+      {
+        "name": "bar-grow",
+        "value": "700ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Budget bar segments and macro bars when food is logged."
+      },
+      {
+        "name": "number-roll",
+        "value": "600ms quartic ease-out",
+        "purpose": "The kcal numeral rolling to its new value."
+      },
+      {
+        "name": "sheet-rise",
+        "value": "360ms cubic-bezier(.32,.72,0,1)",
+        "purpose": "Bottom sheets."
+      },
+      {
+        "name": "strip-slide",
+        "value": "200ms ease",
+        "purpose": "The pinned readout strip."
+      },
+      {
+        "name": "toast-in",
+        "value": "200ms ease-out",
+        "purpose": "The undo toast."
+      },
+      {
+        "name": "swipe-nudge",
+        "value": "180ms ease-out",
+        "purpose": "The day sliding in after a swipe."
+      },
+      {
+        "name": "press",
+        "value": "150ms",
+        "purpose": "Scale and brightness feedback on buttons."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "diary-two-column",
+        "value": "900px"
+      }
+    ],
+    "constraints": {
+      "textContrast": "4.5:1",
+      "minimumTextSize": "11px",
+      "minimumTouchTarget": "44px",
+      "audience": "single owner"
+    }
+  },
+  "components": [
+    {
+      "name": "Budget Bar",
+      "kind": "custom",
+      "refersTo": "budget-bar",
+      "description": "The day as one object: meal segments over 100-kcal cells, with a hard end and striped overflow.",
+      "html": "<div class=\"ds-field\" style=\"padding:16px 20px\"><div class=\"ds-bbar\" role=\"img\" aria-label=\"Breakfast 464, Lunch 593, Snack 182. 1,239 of 2,000 kcal budget.\"><span class=\"ds-bbar-meals\"><span style=\"flex-basis:23.2%;margin-right:2px;background:var(--m-breakfast,#F2A71B)\"></span><span style=\"flex-basis:29.6%;margin-right:2px;background:var(--m-lunch,#CE3A20)\"></span><span style=\"flex-basis:9.1%;background:var(--m-snack,#3FA65F)\"></span></span><span class=\"ds-bbar-cells\"></span></div></div>",
+      "css": ".ds-field { background: var(--field, #0E3B2E); border-radius: 26px; } .ds-bbar { position: relative; display: block; height: 22px; overflow: hidden; border-radius: 7px; background: var(--field-track, #245A48); } .ds-bbar-meals { position: absolute; inset: 0; display: flex; } .ds-bbar-meals span { flex: 0 0 0; transition: flex-basis .7s cubic-bezier(.16,1,.3,1); } .ds-bbar-cells { position: absolute; inset: 0; background: linear-gradient(90deg, transparent calc(100% - 1.5px), var(--field, #0E3B2E) 0) 0 0 / 5% 100%; opacity: .5; } .ds-bbar:hover .ds-bbar-meals span:last-child { flex-basis: 14% !important; } @media (prefers-reduced-motion: reduce) { .ds-bbar-meals span { transition: none; } }"
+    },
+    {
+      "name": "Day Field",
+      "kind": "custom",
+      "refersTo": "day-field",
+      "description": "The screen's one elevated answer: kcal left, eaten and budget.",
+      "html": "<section class=\"ds-dayfield\"><div class=\"ds-hero-top\"><div><div class=\"ds-hero-num\">1,281</div><div class=\"ds-hero-cap\">kcal left</div></div><div class=\"ds-hero-side\"><div><b>1,239</b> eaten</div><button type=\"button\" class=\"ds-hero-goal\"><b>2,520</b> budget</button></div></div></section>",
+      "css": ".ds-dayfield { padding: 16px 20px; border-radius: 26px; background: var(--field, #0E3B2E); color: var(--on-field, #FFFFFF); font-family: 'Barlow', system-ui, sans-serif; font-variant-numeric: tabular-nums; } .ds-hero-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; } .ds-hero-num { font-family: 'Bricolage Grotesque', 'Barlow', system-ui, sans-serif; font-size: 76px; font-weight: 800; font-variant-numeric: lining-nums proportional-nums; line-height: .92; } .ds-hero-cap { margin-top: 4px; color: var(--on-field-2, #C4DCCD); font-size: 15px; font-weight: 600; } .ds-hero-side { color: var(--on-field-2, #C4DCCD); font-size: 13px; line-height: 1.45; text-align: right; white-space: nowrap; } .ds-hero-side b { color: var(--on-field, #FFFFFF); font-size: 15px; font-weight: 700; } .ds-hero-goal { min-height: 44px; margin: -12px 0; padding: 0; border: none; background: none; color: inherit; font: inherit; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; } .ds-hero-goal:hover { color: var(--on-field, #FFFFFF); } .ds-hero-goal:focus-visible { outline: 2px solid var(--on-field, #FFFFFF); outline-offset: 2px; border-radius: 6px; }"
+    },
+    {
+      "name": "Log Dock",
+      "kind": "button",
+      "refersTo": "dock-log-dinner",
+      "description": "The next meal's logging action, in that meal's color.",
+      "html": "<button type=\"button\" class=\"ds-dock\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>Log dinner</button>",
+      "css": ".ds-dock { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 398px; height: 52px; border: none; border-radius: 26px; background: var(--m-dinner, #6E3189); color: var(--m-dinner-ink, #FFFFFF); font-family: 'Bricolage Grotesque', 'Barlow', system-ui, sans-serif; font-size: 17px; font-weight: 800; box-shadow: 0 8px 20px rgba(0,0,0,.28); cursor: pointer; transition: transform .15s, filter .15s; } .ds-dock:hover { filter: brightness(1.06); } .ds-dock:active { transform: scale(.98); } .ds-dock:focus-visible { outline: 2px solid var(--ink, #17231C); outline-offset: 2px; }"
+    },
+    {
+      "name": "Meal Add",
+      "kind": "button",
+      "refersTo": "meal-add-breakfast",
+      "description": "A round filled add button: 40px circle inside a 44px hit area.",
+      "html": "<button type=\"button\" class=\"ds-meal-add\" aria-label=\"Add to breakfast\"><span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></span></button>",
+      "css": ".ds-meal-add { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%; background: none; cursor: pointer; } .ds-meal-add span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--m-breakfast, #F2A71B); color: var(--m-breakfast-ink, #17231C); transition: transform .15s, filter .15s; } .ds-meal-add:hover span { filter: brightness(1.08); } .ds-meal-add:active span { transform: scale(.92); } .ds-meal-add:focus-visible { outline: 2px solid var(--ink, #17231C); outline-offset: 1px; }"
+    },
+    {
+      "name": "Meal Rows",
+      "kind": "custom",
+      "refersTo": "meal-add-breakfast",
+      "description": "An open meal head with swatch, name and total over hairline food rows; never a card.",
+      "html": "<section class=\"ds-meal\"><div class=\"ds-meal-head\"><span class=\"ds-meal-sw\"></span><h2 class=\"ds-meal-title\">Breakfast</h2><span class=\"ds-meal-kcal\">464</span></div><div class=\"ds-item\"><span class=\"ds-item-name\">Greek yogurt, nonfat</span><span>100</span></div><div class=\"ds-item\"><span class=\"ds-item-name\">Honey almond granola</span><span>253</span></div></section>",
+      "css": ".ds-meal { font-family: 'Barlow', system-ui, sans-serif; font-variant-numeric: tabular-nums; color: var(--ink, #17231C); } .ds-meal-head { display: flex; align-items: center; gap: 10px; min-height: 52px; } .ds-meal-sw { width: 12px; height: 12px; border-radius: 4px; background: var(--m-breakfast, #F2A71B); } .ds-meal-title { margin: 0; font-family: 'Bricolage Grotesque', 'Barlow', system-ui, sans-serif; font-size: 21px; font-weight: 800; line-height: 1.1; } .ds-meal-kcal { margin-left: auto; font-size: 15px; font-weight: 700; } .ds-item { display: flex; align-items: center; gap: 10px; min-height: 44px; padding-left: 22px; border-top: 1px solid var(--line, #DCE2D3); font-size: 15px; font-weight: 600; } .ds-item-name { flex: 1; min-width: 0; overflow: hidden; font-weight: 500; white-space: nowrap; text-overflow: ellipsis; } .ds-item:hover { color: var(--accent-text, #B2321B); }"
+    },
+    {
+      "name": "Save Button",
+      "kind": "button",
+      "refersTo": "button-save",
+      "description": "Primary action in sheets and forms; takes the meal color inside a food sheet.",
+      "html": "<button type=\"button\" class=\"ds-save\">Save</button>",
+      "css": ".ds-save { min-height: 44px; padding: 14px 32px; border: none; border-radius: 10px; background: var(--accent, #CE3A20); color: var(--accent-ink, #FFFFFF); font-family: 'Bricolage Grotesque', 'Barlow', system-ui, sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; } .ds-save:hover { filter: brightness(1.06); } .ds-save:focus-visible { outline: 2px solid var(--ink, #17231C); outline-offset: 2px; } .ds-save:disabled { opacity: .4; cursor: default; }"
+    },
+    {
+      "name": "Tool Pill",
+      "kind": "chip",
+      "refersTo": "meal-tool",
+      "description": "Secondary meal action such as notes or photos.",
+      "html": "<button type=\"button\" class=\"ds-tool\">Add a note</button>",
+      "css": ".ds-tool { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid var(--line, #DCE2D3); border-radius: 22px; background: var(--card, #FCFDF8); color: var(--ink, #17231C); font-family: 'Barlow', system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color .15s; } .ds-tool:hover { border-color: var(--muted, #55625A); } .ds-tool:focus-visible { outline: 2px solid var(--ink, #17231C); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Form field on a card fill; the border takes the accent on focus.",
+      "html": "<input class=\"ds-in\" type=\"text\" placeholder=\"Calories\" aria-label=\"Calories\">",
+      "css": ".ds-in { width: 100%; padding: 12px 14px; border: 1.5px solid var(--line, #DCE2D3); border-radius: 10px; outline: none; background: var(--card, #FCFDF8); color: var(--ink, #17231C); font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; font-weight: 600; transition: border-color .15s; } .ds-in::placeholder { color: var(--muted, #55625A); } .ds-in:hover { border-color: var(--muted, #55625A); } .ds-in:focus-visible { border-color: var(--accent, #CE3A20); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Hairline-ringed container on Metrics and Profile; not used for Diary meals.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Weight</div><div class=\"ds-card-sub\">Last 30 days</div></div>",
+      "css": ".ds-card { padding: 13px 15px 15px; border-radius: 14px; background: var(--card, #FCFDF8); box-shadow: 0 0 0 1px var(--line, #DCE2D3); } .ds-card-title { color: var(--ink, #17231C); font-family: 'Bricolage Grotesque', 'Barlow', system-ui, sans-serif; font-size: 16px; font-weight: 800; } .ds-card-sub { margin-top: 4px; color: var(--muted, #55625A); font-family: 'Barlow', system-ui, sans-serif; font-size: 13px; font-weight: 600; }"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab",
+      "description": "Fixed bottom navigation across Diary, Metrics and Profile.",
+      "html": "<nav class=\"ds-tabbar\"><a class=\"ds-tab active\" href=\"#\">Diary</a><a class=\"ds-tab\" href=\"#\">Metrics</a><a class=\"ds-tab\" href=\"#\">Profile</a></nav>",
+      "css": ".ds-tabbar { display: flex; background: var(--card, #FCFDF8); border-top: 1px solid var(--line, #DCE2D3); } .ds-tab { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 58px; color: var(--muted, #55625A); font-family: 'Barlow', system-ui, sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; transition: color .15s; } .ds-tab:hover, .ds-tab.active { color: var(--ink, #17231C); } .ds-tab.active::before { content: ''; position: absolute; top: -1px; left: 50%; width: 28px; height: 2px; transform: translateX(-50%); background: var(--ink, #17231C); } .ds-tab:focus-visible { outline: 2px solid var(--ink, #17231C); outline-offset: -3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Market Day",
+    "overview": "The day stacks up like produce. Each meal owns a color, and a budget bar built from visible 100-kcal cells shows where the calories went. The language comes from greenmarket signage and fruit-crate labels: chunky type, plain words, flat color, and size that carries the ranking. The biggest thing on the screen is how many calories are left.\n\nThis is a single-owner tool used on phone and desktop several times a day, so it is quick to read and quick to leave. The Diary opens on a full-bleed field in forest green (light theme) or aubergine (dark theme, the default). That field holds the date, the kcal left, the bar, three macros and the eating window. Below it the meals run as open hairline rows on pale celery or deep aubergine, each with a round filled add button in its own color. A docked Log button in the next meal's color sits one thumb away.\n\nColors and fonts apply across the whole app. The field-and-rows layout belongs to the Diary only; Metrics and Profile keep their single 430px column of hairline-ringed cards, wearing the same palette and type.",
+    "keyCharacteristics": [
+      "One color per meal: squash, tomato, plum, leaf, with cornflower for exercise",
+      "One field per screen, holding the day's answer; everything else sits open on the ground",
+      "A budget bar of visible cells, with a hard end and striped overflow",
+      "Chunky Bricolage Grotesque for big numerals and names; Barlow for food names, figures and labels",
+      "Round filled add buttons and a docked Log button as the only loud controls",
+      "Bar segments grow when food is logged, and the kcal numeral rolls to its new value"
+    ],
+    "rules": [
+      {
+        "name": "The Meal Owns Its Color Rule",
+        "body": "A meal color marks its own swatch, add button, bar segment, docked Log button and food sheet. It is never decoration. The sanctioned second jobs are squash for over-budget on the field, tomato as the app accent, and cornflower for carbs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Variant Rule",
+        "body": "Colored text on the ground or a card uses a text variant (such as #7A5200 for squash or #1F6B3A for leaf), never the raw fill, so every text pairing stays at 4.5:1 or better. Filled buttons use the meal's set ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Theme Rule",
+        "body": "Every color role exists in both themes. Dark is the default, and neither theme is an afterthought.",
+        "section": "colors"
+      },
+      {
+        "name": "The Size Carries Rank Rule",
+        "body": "Ranking comes from size and weight, not from boxes or color. Kcal left leads, meal names follow, food rows stay quiet.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Numeral Voices Rule",
+        "body": "A number standing alone as a headline is Bricolage with proportional figures. A number in a column is Barlow with tabular figures. Tabular is the app-wide default.",
+        "section": "typography"
+      },
+      {
+        "name": "The 11px Floor Rule",
+        "body": "No text renders below 11px, including SVG chart labels. Words stay in sentence case.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Floaters Cast Shadows Rule",
+        "body": "If it does not float over scrolling content, it does not get a soft shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep all text at 4.5:1 contrast or better, in both themes.",
+      "Do keep all text at 11px or larger, including chart labels.",
+      "Do give every touch target at least 44px, growing the hit area around a smaller visual if needed, as the 40px add circle does.",
+      "Do give a new meal-related surface its meal's color through the set fill, ink and text-variant trio.",
+      "Do use a dotted underline for a value that opens an editor (budget, eating-window times) and a solid underline for a word that acts now (Today, Stop eating).",
+      "Do say over-budget in words as well as color and stripes.",
+      "Do honor reduced motion: bar growth, number rolls, swipe nudges, toasts and the strip all switch off.",
+      "Do keep logging one tap from the first view."
+    ],
+    "donts": [
+      "Don't put a ring chart or summary cards on the Diary; the bar and open rows are the answer.",
+      "Don't wrap Diary meals in cards or add a second field.",
+      "Don't use a raw meal fill as text on the ground or a card.",
+      "Don't let the budget bar imply room past the budget; it always has a hard end.",
+      "Don't carry the Diary's layout to Metrics or Profile without the owner asking; only colors and fonts are app-wide.",
+      "Don't add multi-user affordances; the product has exactly one owner."
+    ]
+  }
+}
