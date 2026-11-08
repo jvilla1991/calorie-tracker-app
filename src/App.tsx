@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { SettingsProvider } from './contexts/SettingsContext'
+import { useNativeStatusBar } from './hooks/useNativeStatusBar'
 import ProtectedRoute from './components/ProtectedRoute'
 import TabLayout from './components/TabLayout'
 import LoginPage from './pages/LoginPage'
@@ -11,6 +12,7 @@ import { todayLocal } from './utils/date'
 
 function ThemedShell() {
   const { dark } = useTheme()
+  useNativeStatusBar(dark)
   return (
     <div className={'ct-app ' + (dark ? 'ct-dark-theme' : 'ct-light-theme')}>
       <Routes>

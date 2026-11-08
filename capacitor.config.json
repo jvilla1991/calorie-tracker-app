@@ -1,0 +1,14 @@
+{
+  "appId": "com.villadev.calorietracker",
+  "appName": "Calorie Tracker",
+  "webDir": "ios-shell",
+  "backgroundColor": "#0D0E11",
+  "server": {
+    "url": "https://health.villa-dev.com",
+    "errorPath": "offline.html"
+  },
+  "ios": {
+    "contentInset": "never",
+    "allowsLinkPreview": false
+  }
+}
