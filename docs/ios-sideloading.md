@@ -67,7 +67,7 @@ npx cap sync ios
 
 ## Changing the icon
 
-The icon is the same plain green square as the web app. To replace it, overwrite
+The icon is the same fire heart as the web app. To replace it, overwrite
 `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` with a 1024x1024 PNG that has
 no transparency.
 
